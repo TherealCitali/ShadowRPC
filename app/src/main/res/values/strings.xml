@@ -139,4 +139,10 @@
     <string name="app_options_hint">Overrides apply only to this app. Sharing still requires App Detection and Rich Presence to be enabled.</string>
     <string name="app_options_reset">Reset overrides</string>
     <string name="app_options_save_error">Could not save changes. Please try again.</string>
+    <string name="detection_no_foreground">No foreground app reported — open a selected app</string>
+    <string name="detection_no_selection">Choose apps to share on Home</string>
+    <string name="detection_not_selected">Not selected: %1$s</string>
+    <string name="detection_detected">Detected %1$s — updating Discord</string>
+    <string name="detection_publish_error">Detected %1$s — Discord update failed; see Logs</string>
+    <string name="detection_poll_error">Detection failed — retrying; see Logs</string>
 </resources>

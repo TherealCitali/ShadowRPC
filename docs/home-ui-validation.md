@@ -84,3 +84,26 @@ nested scrolling issues; search using the button beside Manage apps; toggle
 sharing, long-press and save overrides; grant/revoke Usage access and return to
 Home; verify there is one detection switch and Back does not open another app
 management page. Compilation remains unverified in this environment.
+
+## Foreground detection and notification reliability
+
+Replaced the fixed 60-second resume-event window with a one-day bootstrap and
+incremental event tracking. Quiet intervals retain the active package; matching
+pause/screen-off events clear it. Non-interactive / locked devices do not share.
+Usage-event queries run on IO. Optional icon loading runs independently, so the
+first text presence does not wait for Catbox. Poll exceptions log and retry.
+Notification now distinguishes no foreground, unselected app, detected app and
+Discord publishing failure. The small icon is an alpha-only gamepad vector.
+
+Pending device regression checks (not executed here):
+- Android 8/10/12+: open a selected app for >60 seconds; keep presence active.
+- Start detection while an app is already open; switch selected/unselected apps,
+  launcher, lock/unlock and activities within the same package.
+- Block Catbox: text still publishes, polling continues and icons retry later.
+- Revoke usage access, disconnect network, refresh/restart service; inspect Logs
+  for foreground package changes vs Discord publishing errors.
+- Inspect status-bar glyph and notification header in light/dark themes. Android
+  may hide silent status icons via system settings; the app does not override it.
+
+The screenshots reported during this fix still show the removed separate App
+Detection screen, so verify installation of the newest build before retesting.

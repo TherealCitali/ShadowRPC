@@ -21,6 +21,10 @@ import dev.citali.shadowrpc.presence.ActivityContent
 import dev.citali.shadowrpc.presence.ActivityTemplate
 import dev.citali.shadowrpc.presence.PresenceManager
 import dev.citali.shadowrpc.presence.PresenceRequest
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import dev.citali.shadowrpc.presence.PresenceState
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -40,11 +44,16 @@ import timber.log.Timber
  */
 class AppDetectionService : LifecycleService() {
     private var pollJob: Job? = null
+    private var iconJob: Job? = null
+    private val iconUrls = mutableMapOf<String, String>()
+    private val iconAttempts = mutableMapOf<String, Long>()
+    private var lastDetected: String? = null
     private var sharedPackage: String? = null
     private var sharedSinceEpochSeconds: Long = 0L
 
     override fun onCreate() {
         super.onCreate()
+        ForegroundAppDetector.reset()
         _running.value = true
         startForegroundCompat(buildNotification(getString(R.string.app_detection_notification_idle)))
     }
@@ -62,49 +71,64 @@ class AppDetectionService : LifecycleService() {
             }
             return START_NOT_STICKY
         }
-        if (pollJob == null) pollJob = lifecycleScope.launch { pollLoop() }
+        if (pollJob?.isActive != true) pollJob = lifecycleScope.launch { pollLoop() }
         return START_STICKY
     }
 
     private suspend fun pollLoop() {
         while (lifecycleScope.isActive) {
-            val enabled = pref(Prefs.AppDetectionEnabledKey, false)
-            if (!enabled) {
-                stopSelf()
-                return
-            }
-            if (!ForegroundAppDetector.hasUsageAccess(this)) {
-                Timber.tag(TAG).w("usage access revoked; stopping")
-                setPref(Prefs.AppDetectionEnabledKey, false)
-                stopSelf()
-                return
-            }
+            try {
+                val enabled = pref(Prefs.AppDetectionEnabledKey, false)
+                if (!enabled) {
+                    stopSelf()
+                    return
+                }
+                if (!ForegroundAppDetector.hasUsageAccess(this)) {
+                    Timber.tag(TAG).w("usage access revoked; stopping")
+                    setPref(Prefs.AppDetectionEnabledKey, false)
+                    stopSelf()
+                    return
+                }
 
-            if (!pref(Prefs.RpcEnabledKey, true)) {
-                sharedPackage = null
-                updateNotification(getString(R.string.rpc_paused))
-                delay(POLL_INTERVAL_MS)
-                continue
-            }
-
-            val watched = pref(Prefs.AppDetectionPackagesKey, emptySet())
-            val foreground = ForegroundAppDetector.currentForegroundPackage(this)
-            val target = foreground?.takeIf { it in watched }
-
-            when {
-                target == null && sharedPackage != null -> {
-                    PresenceManager.clear(this)
+                if (!pref(Prefs.RpcEnabledKey, true)) {
                     sharedPackage = null
-                    updateNotification(getString(R.string.app_detection_notification_idle))
+                    updateNotification(getString(R.string.rpc_paused))
+                    delay(POLL_INTERVAL_MS)
+                    continue
                 }
 
-                target != null -> {
-                    if (target != sharedPackage) {
-                        sharedPackage = target
-                        sharedSinceEpochSeconds = System.currentTimeMillis() / 1000L
-                    }
-                    publish(target)
+                val watched = pref(Prefs.AppDetectionPackagesKey, emptySet())
+                val foreground = withContext(Dispatchers.IO) { ForegroundAppDetector.currentForegroundPackage(this@AppDetectionService) }
+                if (foreground != lastDetected) {
+                    Timber.tag(TAG).i("foreground=%s, selected=%s", foreground, foreground in watched)
+                    lastDetected = foreground
                 }
+                val target = foreground?.takeIf { it in watched }
+
+                when {
+                    target == null -> {
+                        if (sharedPackage != null) PresenceManager.clear(this)
+                        sharedPackage = null
+                        updateNotification(
+                            if (foreground == null) getString(R.string.detection_no_foreground)
+                            else if (watched.isEmpty()) getString(R.string.detection_no_selection)
+                            else getString(R.string.detection_not_selected, InstalledApps.label(this, foreground)),
+                        )
+                    }
+
+                    target != null -> {
+                        if (target != sharedPackage) {
+                            sharedPackage = target
+                            sharedSinceEpochSeconds = System.currentTimeMillis() / 1000L
+                        }
+                        publish(target)
+                    }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Timber.tag(TAG).e(error, "detection poll failed; retrying")
+                updateNotification(getString(R.string.detection_poll_error))
             }
             delay(POLL_INTERVAL_MS)
         }
@@ -116,8 +140,25 @@ class AppDetectionService : LifecycleService() {
         val text = ActivityTemplate.resolve(overrides.applyTo(ActivityContent.load(this)), subject, getString(R.string.app_name))
         val showIcon = pref(Prefs.AppDetectionShowIconKey, false)
         val timestamps = pref(Prefs.AppDetectionTimestampsKey, true)
-        val icon = if (showIcon) IconHost.urlFor(this, packageName) else null
-
+        // Optional artwork must never block foreground polling / initial text presence.
+        val icon = if (showIcon) iconUrls[packageName] else null
+        if (showIcon && icon == null && iconJob?.isActive != true &&
+            System.currentTimeMillis() - (iconAttempts[packageName] ?: 0L) > 60_000L
+        ) {
+            iconAttempts[packageName] = System.currentTimeMillis()
+            iconJob = lifecycleScope.launch {
+                try {
+                    IconHost.urlFor(this@AppDetectionService, packageName)?.let { iconUrls[packageName] = it }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    Timber.tag(TAG).w(error, "optional icon unavailable")
+                }
+            }
+        }
+        if (PresenceManager.state.value !is PresenceState.Sharing) {
+            updateNotification(getString(R.string.detection_detected, subject.appLabel))
+        }
         PresenceManager.update(
             this,
             PresenceRequest(
@@ -131,8 +172,11 @@ class AppDetectionService : LifecycleService() {
             ),
         )
         updateNotification(
-            if (pref(Prefs.RpcEnabledKey, true)) getString(R.string.app_detection_notification_active, subject.appLabel)
-            else getString(R.string.rpc_paused),
+            when {
+                !pref(Prefs.RpcEnabledKey, true) -> getString(R.string.rpc_paused)
+                PresenceManager.state.value is PresenceState.Error -> getString(R.string.detection_publish_error, subject.appLabel)
+                else -> getString(R.string.app_detection_notification_active, subject.appLabel)
+            },
         )
     }
 
@@ -187,6 +231,7 @@ class AppDetectionService : LifecycleService() {
     }
 
     override fun onDestroy() {
+        iconJob?.cancel()
         pollJob?.cancel()
         pollJob = null
         _running.value = false
