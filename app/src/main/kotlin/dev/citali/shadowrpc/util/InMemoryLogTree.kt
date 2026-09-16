@@ -21,6 +21,7 @@ object InMemoryLogTree : Timber.Tree() {
     private val _lines = MutableStateFlow<List<LogLine>>(emptyList())
     val lines: StateFlow<List<LogLine>> = _lines
 
+    @Synchronized
     override fun log(
         priority: Int,
         tag: String?,
@@ -28,10 +29,17 @@ object InMemoryLogTree : Timber.Tree() {
         t: Throwable?,
     ) {
         val text = if (t != null) "$message\n${t.stackTraceToString().take(600)}" else message
-        val line = LogLine(format.format(Date()), priority, tag, text)
+        val line = LogLine(format.format(Date()), priority, tag, redact(text).take(4000))
         _lines.value = (_lines.value + line).takeLast(MAX_LINES)
     }
 
+    /** Strip common credential formats before storage, display or clipboard export. */
+    private fun redact(text: String): String = text
+        .replace(Regex("(?i)Bearer\\s+[^\\s\"&]+"), "Bearer [redacted]")
+        .replace(Regex("(?i)((?:access_token|refresh_token|id_token|client_secret|code_verifier|authorization|token|code)[\"\\s]*[:=][\"\\s]*)[^\\s\"&,}]+"), "$1[redacted]")
+        .replace(Regex("gh[pousr]_[A-Za-z0-9]+"), "[redacted]")
+
+    @Synchronized
     fun clear() {
         _lines.value = emptyList()
     }

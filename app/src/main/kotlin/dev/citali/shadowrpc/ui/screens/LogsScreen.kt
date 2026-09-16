@@ -3,6 +3,17 @@ package dev.citali.shadowrpc.ui.screens
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.util.Log
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.Button
+import dev.citali.shadowrpc.ui.component.SwitchPreference
+import dev.citali.shadowrpc.util.FloatingLogsService
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,6 +42,13 @@ import dev.citali.shadowrpc.util.InMemoryLogTree
 fun LogsScreen(onBack: () -> Unit) {
     val lines by InMemoryLogTree.lines.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val floating by FloatingLogsService.running.collectAsStateWithLifecycle()
+    var follow by remember { mutableStateOf(true) }
+    var overlayError by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    LaunchedEffect(lines.lastOrNull(), follow) {
+        if (follow && lines.isNotEmpty()) listState.scrollToItem(lines.lastIndex)
+    }
 
     ScreenScaffold(
         title = stringResource(R.string.drawer_logs),
@@ -46,6 +64,26 @@ fun LogsScreen(onBack: () -> Unit) {
             }
         },
     ) {
+        SwitchPreference(
+            title = stringResource(R.string.logs_follow), checked = follow,
+            onCheckedChange = { follow = it },
+        )
+        Button(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            onClick = {
+                runCatching {
+                    when {
+                        floating -> FloatingLogsService.stop(context)
+                        Settings.canDrawOverlays(context) -> FloatingLogsService.start(context)
+                        else -> context.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${context.packageName}")))
+                    }
+                }.onFailure { overlayError = true }
+            },
+        ) { Text(stringResource(if (floating) R.string.floating_logs_stop else R.string.floating_logs_start)) }
+        Text(stringResource(R.string.floating_logs_hint), style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+        if (overlayError) Text(stringResource(R.string.floating_logs_error), color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(horizontal = 16.dp))
         if (lines.isEmpty()) {
             Text(
                 stringResource(R.string.logs_empty),
@@ -54,7 +92,7 @@ fun LogsScreen(onBack: () -> Unit) {
                 modifier = Modifier.padding(horizontal = 32.dp),
             )
         } else {
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            LazyColumn(state = listState, modifier = Modifier.fillMaxWidth()) {
                 items(lines) { line ->
                     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                         Text(

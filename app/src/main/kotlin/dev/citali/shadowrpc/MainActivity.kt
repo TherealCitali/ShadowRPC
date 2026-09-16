@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Palette
@@ -98,13 +97,12 @@ private fun ShadowRpcRoot() {
     val mainEntries =
         listOf(
             DrawerEntry(Routes.DISPLAY, R.string.drawer_display, Icons.Outlined.Palette),
-            DrawerEntry(Routes.LOGS, R.string.drawer_logs, Icons.Outlined.Article),
             DrawerEntry(Routes.SETTINGS, R.string.drawer_settings, Icons.Outlined.Settings),
         )
     val helpEntries =
         listOf(
             DrawerEntry(null, R.string.drawer_faq, Icons.Outlined.QuestionAnswer, "https://github.com/TherealCitali/ShadowRPC#faq"),
-            DrawerEntry(null, R.string.drawer_telegram, Icons.AutoMirrored.Outlined.Send, "https://t.me/LunarTuneGC"),
+            DrawerEntry(Routes.LOGS, R.string.drawer_logs, Icons.Outlined.Article),
             DrawerEntry(Routes.ABOUT, R.string.drawer_about, Icons.Outlined.Info),
         )
 

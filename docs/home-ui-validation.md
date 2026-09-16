@@ -107,3 +107,22 @@ Pending device regression checks (not executed here):
 
 The screenshots reported during this fix still show the removed separate App
 Detection screen, so verify installation of the newest build before retesting.
+
+## Live and floating logs
+
+Telegram drawer entry replaced with Logs; the earlier Logs entry was removed to
+avoid duplication. Live Logs has optional auto-follow, copy and clear. The
+400-entry in-memory buffer is synchronized and filters common credential formats
+before display/export (not a guarantee against every possible secret format).
+
+Floating logs are explicitly user-started after SYSTEM_ALERT_WINDOW permission.
+The non-focusable overlay shows the latest 80 entries, supports dragging by its
+header and closing with ×, and has a separate low-importance foreground service
+notification with Stop. No stored enabled preference, START_NOT_STICKY, no boot
+restart; removing the app task stops it. It does not depend on detection running.
+
+Pending device checks: permission denied/granted/revoked; switching to other
+apps; drag to screen edges; rotate; close and notification Stop; task removal;
+process death/reboot; Android 8/12/14+; notification permission denied; live log
+updates with detection enabled; copy/clear and disable follow to read history.
+Manifest/resource and whitespace checks passed; build/runtime remain unverified.
