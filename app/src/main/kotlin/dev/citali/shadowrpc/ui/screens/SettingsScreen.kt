@@ -3,25 +3,20 @@ package dev.citali.shadowrpc.ui.screens
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Badge
-import androidx.compose.material.icons.outlined.Notes
-import androidx.compose.material.icons.outlined.ShortText
-import androidx.compose.material3.MaterialTheme
-import dev.citali.shadowrpc.data.rememberEnumPreference
-import dev.citali.shadowrpc.presence.ActivityContent
-import dev.citali.shadowrpc.presence.ActivitySource
-import dev.citali.shadowrpc.presence.ActivitySubject
-import dev.citali.shadowrpc.presence.ActivityTemplate
-import dev.citali.shadowrpc.ui.component.PresencePreview
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DoNotDisturbOn
 import androidx.compose.material.icons.outlined.HighQuality
+import androidx.compose.material.icons.outlined.Notes
 import androidx.compose.material.icons.outlined.Pin
+import androidx.compose.material.icons.outlined.ShortText
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -35,15 +30,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dev.citali.shadowrpc.R
 import dev.citali.shadowrpc.data.Prefs
+import dev.citali.shadowrpc.data.rememberEnumPreference
 import dev.citali.shadowrpc.data.rememberPreference
 import dev.citali.shadowrpc.detection.IconHost
+import dev.citali.shadowrpc.presence.ActivityContent
+import dev.citali.shadowrpc.presence.ActivitySource
+import dev.citali.shadowrpc.presence.ActivitySubject
+import dev.citali.shadowrpc.presence.ActivityTemplate
+import dev.citali.shadowrpc.ui.component.PreferenceCard
 import dev.citali.shadowrpc.ui.component.PreferenceEntry
 import dev.citali.shadowrpc.ui.component.PreferenceGroupTitle
+import dev.citali.shadowrpc.ui.component.PresencePreview
 import dev.citali.shadowrpc.ui.component.ScreenScaffold
 import dev.citali.shadowrpc.ui.component.SwitchPreference
 import kotlinx.coroutines.launch
@@ -65,6 +66,17 @@ private val activityStatuses =
 
 @Composable
 fun SettingsScreen(onBack: () -> Unit) {
+    ScreenScaffold(title = stringResource(R.string.drawer_settings), onBack = onBack) {
+        PresenceSettingsContent()
+    }
+}
+
+/** Shared by Home and Settings so edits and preview use the same preferences. */
+@Composable
+fun PresenceSettingsContent(
+    showAdvanced: Boolean = true,
+    afterActivityContent: @Composable () -> Unit = {},
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val (activityType, setActivityType) = rememberPreference(Prefs.ActivityTypeKey, "PLAYING")
@@ -89,7 +101,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             category = stringResource(R.string.settings_preview_sample_category),
         )
     val preview =
-        remember(nameSource, detailsSource, stateSource, nameCustom, detailsCustom, stateCustom) {
+        remember(nameSource, detailsSource, stateSource, nameCustom, detailsCustom, stateCustom, sampleSubject, appName) {
             ActivityTemplate.resolve(
                 ActivityContent(nameSource, detailsSource, stateSource, nameCustom, detailsCustom, stateCustom),
                 sampleSubject,
@@ -101,75 +113,80 @@ fun SettingsScreen(onBack: () -> Unit) {
     var statusDialog by remember { mutableStateOf(false) }
     var appIdDialog by remember { mutableStateOf(false) }
 
-    ScreenScaffold(title = stringResource(R.string.drawer_settings), onBack = onBack) {
+    Column {
         PreferenceGroupTitle(stringResource(R.string.settings_general))
-        PreferenceEntry(
-            title = stringResource(R.string.settings_activity_type),
-            description = stringResource(activityTypes.first { it.first == activityType }.second),
-            icon = Icons.Outlined.Code,
-            onClick = { typeDialog = true },
-        )
-        PreferenceEntry(
-            title = stringResource(R.string.settings_activity_status),
-            description = stringResource(activityStatuses.first { it.first == activityStatus }.second),
-            icon = Icons.Outlined.DoNotDisturbOn,
-            onClick = { statusDialog = true },
-        )
-        PreferenceEntry(
-            title = stringResource(R.string.settings_application_id),
-            description = customAppId.ifBlank { stringResource(R.string.settings_application_id_summary) },
-            icon = Icons.Outlined.Pin,
-            onClick = { appIdDialog = true },
-        )
-
+        PreferenceCard {
+            PreferenceEntry(
+                title = stringResource(R.string.settings_activity_type),
+                description = stringResource(activityTypes.first { it.first == activityType }.second),
+                icon = Icons.Outlined.Code,
+                onClick = { typeDialog = true },
+            )
+            PreferenceEntry(
+                title = stringResource(R.string.settings_activity_status),
+                description = stringResource(activityStatuses.first { it.first == activityStatus }.second),
+                icon = Icons.Outlined.DoNotDisturbOn,
+                onClick = { statusDialog = true },
+            )
+            PreferenceEntry(
+                title = stringResource(R.string.settings_application_id),
+                description = customAppId.ifBlank { stringResource(R.string.settings_application_id_summary) },
+                icon = Icons.Outlined.Pin,
+                onClick = { appIdDialog = true },
+            )
+        }
         PreferenceGroupTitle(stringResource(R.string.settings_activity_content))
-        PresencePreview(
-            activityTypeLabel = stringResource(activityTypes.first { it.first == activityType }.second),
-            name = preview.name,
-            details = preview.details,
-            state = preview.state,
-            showTimestamp = timestamps,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-        )
-        Text(
-            text = stringResource(R.string.settings_activity_content_hint),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-        )
-        PreferenceEntry(
-            title = stringResource(R.string.settings_activity_name),
-            description = sourceLabel(nameSource, nameCustom),
-            icon = Icons.Outlined.Badge,
-            onClick = { editingLine = ActivityLine.NAME },
-        )
-        PreferenceEntry(
-            title = stringResource(R.string.settings_activity_details),
-            description = sourceLabel(detailsSource, detailsCustom),
-            icon = Icons.Outlined.Notes,
-            onClick = { editingLine = ActivityLine.DETAILS },
-        )
-        PreferenceEntry(
-            title = stringResource(R.string.settings_activity_state),
-            description = sourceLabel(stateSource, stateCustom),
-            icon = Icons.Outlined.ShortText,
-            onClick = { editingLine = ActivityLine.STATE },
-        )
-
-        PreferenceGroupTitle(stringResource(R.string.settings_advanced))
-        SwitchPreference(
-            title = stringResource(R.string.settings_low_res_images),
-            description = stringResource(R.string.settings_low_res_images_summary),
-            icon = Icons.Outlined.HighQuality,
-            checked = lowRes,
-            onCheckedChange = setLowRes,
-        )
-        PreferenceEntry(
-            title = stringResource(R.string.settings_clear_icon_cache),
-            description = stringResource(R.string.settings_clear_icon_cache_summary),
-            icon = Icons.Outlined.DeleteForever,
-            onClick = { scope.launch { IconHost.clearCache(context) } },
-        )
+        PreferenceCard {
+            PresencePreview(
+                activityTypeLabel = stringResource(activityTypes.first { it.first == activityType }.second),
+                name = preview.name,
+                details = preview.details,
+                state = preview.state,
+                showTimestamp = timestamps,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            )
+            Text(
+                text = stringResource(R.string.settings_activity_content_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+            )
+            PreferenceEntry(
+                title = stringResource(R.string.settings_activity_name),
+                description = sourceLabel(nameSource, nameCustom),
+                icon = Icons.Outlined.Badge,
+                onClick = { editingLine = ActivityLine.NAME },
+            )
+            PreferenceEntry(
+                title = stringResource(R.string.settings_activity_details),
+                description = sourceLabel(detailsSource, detailsCustom),
+                icon = Icons.Outlined.Notes,
+                onClick = { editingLine = ActivityLine.DETAILS },
+            )
+            PreferenceEntry(
+                title = stringResource(R.string.settings_activity_state),
+                description = sourceLabel(stateSource, stateCustom),
+                icon = Icons.Outlined.ShortText,
+                onClick = { editingLine = ActivityLine.STATE },
+            )
+        }
+        afterActivityContent()
+        if (showAdvanced) {
+            PreferenceGroupTitle(stringResource(R.string.settings_advanced))
+            SwitchPreference(
+                title = stringResource(R.string.settings_low_res_images),
+                description = stringResource(R.string.settings_low_res_images_summary),
+                icon = Icons.Outlined.HighQuality,
+                checked = lowRes,
+                onCheckedChange = setLowRes,
+            )
+            PreferenceEntry(
+                title = stringResource(R.string.settings_clear_icon_cache),
+                description = stringResource(R.string.settings_clear_icon_cache_summary),
+                icon = Icons.Outlined.DeleteForever,
+                onClick = { scope.launch { IconHost.clearCache(context) } },
+            )
+        }
     }
 
     if (typeDialog) {

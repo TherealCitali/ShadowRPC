@@ -2,11 +2,13 @@ package dev.citali.shadowrpc.ui.screens
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -43,6 +45,13 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AccountScreen(onBack: () -> Unit) {
+    ScreenScaffold(title = stringResource(R.string.account_title), onBack = onBack) {
+        AccountContent()
+    }
+}
+
+@Composable
+fun AccountContent() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val (token) = rememberPreference(Prefs.DiscordTokenKey, "")
@@ -64,9 +73,10 @@ fun AccountScreen(onBack: () -> Unit) {
         }
     }
 
-    ScreenScaffold(title = stringResource(R.string.account_title), onBack = onBack) {
+    Column {
         Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
@@ -74,31 +84,40 @@ fun AccountScreen(onBack: () -> Unit) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp)) {
-                if (avatarUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = avatarUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(96.dp)
-                            .clip(CircleShape),
-                    )
-                    Spacer(Modifier.height(16.dp))
-                }
-                Text(
-                    text =
-                        if (token.isBlank()) {
-                            stringResource(R.string.account_not_linked)
-                        } else {
-                            stringResource(R.string.account_linked_as, name.ifBlank { username })
-                        },
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                if (token.isNotBlank() && username.isNotBlank() && username != name) {
-                    Text("@$username", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    if (avatarUrl.isNotBlank()) {
+                        AsyncImage(
+                            model = avatarUrl,
+                            contentDescription = null,
+                            modifier = Modifier.size(80.dp).clip(CircleShape),
+                        )
+                        Spacer(Modifier.width(16.dp))
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (token.isBlank()) {
+                                stringResource(R.string.account_not_linked)
+                            } else {
+                                name.ifBlank { username }
+                            },
+                            style = MaterialTheme.typography.headlineSmall,
+                        )
+                        if (token.isNotBlank() && username.isNotBlank()) {
+                            Text(
+                                "@$username",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                 }
                 Spacer(Modifier.height(20.dp))
                 if (token.isBlank()) {
                     Button(
+                        modifier = Modifier.fillMaxWidth(),
                         enabled = hasAppId,
                         onClick = {
                             val session = DiscordOAuthRepository.createAuthorizationSession()
@@ -107,7 +126,7 @@ fun AccountScreen(onBack: () -> Unit) {
                         },
                     ) { Text(stringResource(R.string.account_login)) }
                 } else {
-                    OutlinedButton(onClick = {
+                    OutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = {
                         scope.launch {
                             AppDetectionService.stop(context)
                             PresenceManager.shutdown(context)

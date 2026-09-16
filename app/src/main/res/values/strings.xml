@@ -128,4 +128,6 @@
     <string name="action_account">Account</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_save">Save</string>
+    <string name="home_manage_apps">Manage apps</string>
+    <string name="home_manage_apps_summary">Choose apps, grant usage access, and configure icons and timestamps</string>
 </resources>

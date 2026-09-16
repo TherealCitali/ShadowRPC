@@ -137,3 +137,17 @@ fun MasterSwitchCard(
         }
     }
 }
+
+/** Rounded settings group inspired by LunarTune's Discord integration page. */
+@Composable
+fun PreferenceCard(content: @Composable () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    ) {
+        Column(modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
+            content()
+        }
+    }
+}
