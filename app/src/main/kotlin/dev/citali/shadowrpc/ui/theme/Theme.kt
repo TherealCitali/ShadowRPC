@@ -3,6 +3,8 @@ package dev.citali.shadowrpc.ui.theme
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MotionScheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -32,6 +34,7 @@ val SeedColors: List<Color> =
         Color(0xFF9EDCE0), // teal
     )
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ShadowRpcTheme(content: @Composable () -> Unit) {
     val (darkMode) = rememberEnumPreference(Prefs.DarkModeKey, DarkMode.AUTO)
@@ -75,5 +78,5 @@ fun ShadowRpcTheme(content: @Composable () -> Unit) {
             }
         }
 
-    MaterialTheme(colorScheme = scheme, typography = ShadowTypography, content = content)
+    MaterialTheme(colorScheme = scheme, typography = ShadowTypography, motionScheme = MotionScheme.expressive(), content = content)
 }

@@ -22,6 +22,13 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
@@ -82,6 +89,8 @@ private data class DrawerEntry(
 @Composable
 private fun ShadowRpcRoot() {
     val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val drawerWidth = (LocalConfiguration.current.screenWidthDp * 0.78f).coerceAtMost(304f).dp
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -113,8 +122,12 @@ private fun ShadowRpcRoot() {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet {
-                Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+            ModalDrawerSheet(
+                modifier = Modifier.width(drawerWidth),
+                drawerShape = RoundedCornerShape(topEnd = 28.dp, bottomEnd = 28.dp),
+                drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            ) {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 12.dp)) {
                     Text(
                         text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.headlineSmall,
@@ -124,7 +137,7 @@ private fun ShadowRpcRoot() {
                         NavigationDrawerItem(
                             label = { Text(stringResource(entry.labelRes)) },
                             icon = { Icon(entry.icon, contentDescription = null) },
-                            selected = false,
+                            selected = entry.route != null && backStackEntry?.destination?.route == entry.route,
                             onClick = { open(entry) },
                         )
                     }
@@ -139,7 +152,7 @@ private fun ShadowRpcRoot() {
                         NavigationDrawerItem(
                             label = { Text(stringResource(entry.labelRes)) },
                             icon = { Icon(entry.icon, contentDescription = null) },
-                            selected = false,
+                            selected = entry.route != null && backStackEntry?.destination?.route == entry.route,
                             onClick = { open(entry) },
                         )
                     }

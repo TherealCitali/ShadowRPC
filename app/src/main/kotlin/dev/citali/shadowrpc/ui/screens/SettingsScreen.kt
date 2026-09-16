@@ -41,6 +41,9 @@ import dev.citali.shadowrpc.presence.ActivityContent
 import dev.citali.shadowrpc.presence.ActivitySource
 import dev.citali.shadowrpc.presence.ActivitySubject
 import dev.citali.shadowrpc.presence.ActivityTemplate
+import dev.citali.shadowrpc.ui.component.ElasticSheet
+import dev.citali.shadowrpc.ui.component.SheetChoice
+import androidx.compose.foundation.layout.Arrangement
 import dev.citali.shadowrpc.ui.component.PreferenceCard
 import dev.citali.shadowrpc.ui.component.PreferenceEntry
 import dev.citali.shadowrpc.ui.component.PreferenceGroupTitle
@@ -173,7 +176,7 @@ fun PresenceSettingsContent(
                 details = preview.details,
                 state = preview.state,
                 showTimestamp = timestamps,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
             )
         }
         afterActivityContent()
@@ -275,22 +278,16 @@ private fun ChoiceDialog(
     onSelect: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
+    ElasticSheet(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 options.forEach { (value, label) ->
-                    PreferenceEntry(
-                        title = label,
-                        onClick = { onSelect(value) },
-                        trailing = { RadioButton(selected = value == selected, onClick = { onSelect(value) }) },
-                    )
+                    SheetChoice(label, value == selected) { onSelect(value) }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-        modifier = Modifier.padding(0.dp),
     )
 }
 
@@ -328,17 +325,15 @@ private fun ActivityLineDialog(
         ActivityTemplate.render(draftSource, draftTemplate, sampleSubject, appName)
             ?: stringResource(R.string.activity_source_none)
 
-    AlertDialog(
+    ElasticSheet(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 options.forEach { option ->
-                    PreferenceEntry(
-                        title = sourceLabel(option, ""),
-                        onClick = { draftSource = option },
-                        trailing = { RadioButton(selected = option == draftSource, onClick = { draftSource = option }) },
-                    )
+                    SheetChoice(sourceLabel(option, ""), option == draftSource) {
+                        draftSource = option
+                    }
                 }
                 if (draftSource == ActivitySource.CUSTOM) {
                     OutlinedTextField(

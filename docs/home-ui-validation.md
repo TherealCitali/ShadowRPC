@@ -19,3 +19,17 @@ Device checks still required (no Android SDK / JVM 21 in the editing environment
 
 Static checks: resource XML parses, added string references resolve, git diff
 --check passes. Android compilation and screenshot comparison are not verified.
+
+## Drawer and sheet polish
+
+- Drawer width: 78% of window width, capped at 304 dp; current destination is
+  highlighted and content scrolls on short windows / large font sizes.
+- Preview uses bundled user-supplied `presence_sample.jpg`, also used in picker
+  headers. This is illustrative artwork, not an asset uploaded to Discord.
+- Activity type/status and line-source pickers use modal bottom sheets. Verify
+  back, scrim tap, swipe-down dismissal and custom-template keyboard scrolling.
+- Confirm Cancel discards line drafts, Save persists, and selecting a type/status
+  persists immediately. Existing supported activity types are unchanged.
+- Check spring entrance and preview size changes with animator duration scale
+  normal and disabled. Animations use Compose's duration-scale-aware primitives;
+  app-wide Material components receive the expressive motion scheme.
