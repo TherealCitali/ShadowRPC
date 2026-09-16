@@ -29,6 +29,8 @@ import kotlinx.coroutines.withContext
 import dev.citali.shadowrpc.presence.PresenceState
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +38,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 
 /**
@@ -50,6 +51,7 @@ class AppDetectionService : LifecycleService() {
     private val iconUrls = mutableMapOf<String, String>()
     private val iconAttempts = mutableMapOf<String, Long>()
     private var lastDetected: String? = null
+    private var lastHeartbeat = 0L
     private var sharedPackage: String? = null
     private var sharedSinceEpochSeconds: Long = 0L
     private var backgroundSinceElapsed: Long? = null
@@ -97,7 +99,6 @@ class AppDetectionService : LifecycleService() {
                 }
                 if (!ForegroundAppDetector.hasUsageAccess(this)) {
                     Timber.tag(TAG).w("usage access revoked; stopping")
-                    setPref(Prefs.AppDetectionEnabledKey, false)
                     stopSelf()
                     return
                 }
@@ -117,6 +118,12 @@ class AppDetectionService : LifecycleService() {
                     lastDetected = foreground
                 }
                 val target = foreground?.takeIf { it in watched }
+                val heartbeatNow = SystemClock.elapsedRealtime()
+                if (heartbeatNow - lastHeartbeat >= 30_000L) {
+                    lastHeartbeat = heartbeatNow
+                    Timber.tag(TAG).i("Poll alive: foreground=%s selected=%s gatewayReady=%s", foreground, target != null,
+                        dev.citali.shadowrpc.discord.DiscordSocialPresenceClient.isStarted)
+                }
 
                 when {
                     target == null -> {
@@ -131,7 +138,7 @@ class AppDetectionService : LifecycleService() {
                             if (remaining > 0L) {
                                 // Complete late icon uploads while the user checks Discord.
                                 // Keep the original session timestamp and grace deadline.
-                                publish(previous, background = true)
+                                withTimeout(45_000L) { publish(previous, background = true) }
                                 updateNotification(getString(R.string.detection_background_grace,
                                     InstalledApps.label(this, previous), (remaining + 999L) / 1000L))
                                 delay(POLL_INTERVAL_MS)
@@ -156,9 +163,12 @@ class AppDetectionService : LifecycleService() {
                             sharedPackage = target
                             sharedSinceEpochSeconds = System.currentTimeMillis() / 1000L
                         }
-                        publish(target)
+                        withTimeout(45_000L) { publish(target) }
                     }
                 }
+            } catch (timeout: TimeoutCancellationException) {
+                Timber.tag(TAG).w("Presence publish timed out; detection will retry")
+                updateNotification(getString(R.string.detection_poll_error))
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
@@ -279,7 +289,8 @@ class AppDetectionService : LifecycleService() {
         _running.value = false
         // Best effort: clear the presence so the profile does not keep showing a closed app.
         val appContext = applicationContext
-        GlobalScope.launch { runCatching { PresenceManager.shutdown(appContext) } }
+        GlobalScope.launch { runCatching { PresenceManager.shutdown(appContext) { !_running.value } } }
+        Timber.tag(TAG).i("Detection service destroyed; saved preference unchanged")
         super.onDestroy()
     }
 
@@ -307,8 +318,8 @@ class AppDetectionService : LifecycleService() {
         }
 
         /** Restart after boot / process death if the user left detection on and access is still granted. */
-        fun startIfEnabled(context: Context) {
-            val enabled = runBlocking { context.dataStore.data.map { it[Prefs.AppDetectionEnabledKey] ?: false }.first() }
+        suspend fun startIfEnabled(context: Context) {
+            val enabled = context.pref(Prefs.AppDetectionEnabledKey, false)
             if (enabled && ForegroundAppDetector.hasUsageAccess(context)) start(context)
         }
     }

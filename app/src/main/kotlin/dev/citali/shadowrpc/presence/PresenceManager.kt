@@ -56,6 +56,7 @@ object PresenceManager {
     private val mutex = Mutex()
     private var lastSent: PresenceRequest? = null
     private var lastSentAtMs = 0L
+    private var lastActivity: DiscordPresenceActivity? = null
 
     private val _state = MutableStateFlow<PresenceState>(PresenceState.Idle)
     val state: StateFlow<PresenceState> = _state
@@ -69,8 +70,7 @@ object PresenceManager {
     ) {
         mutex.withLock {
             if (!context.pref(Prefs.RpcEnabledKey, true)) return
-            val now = System.currentTimeMillis()
-            if (request == lastSent && now - lastSentAtMs < MIN_INTERVAL_MS) return
+            val now = android.os.SystemClock.elapsedRealtime()
 
             val token = DiscordOAuthRepository.getValidAccessToken(context)
             if (token.isNullOrBlank()) {
@@ -104,9 +104,12 @@ object PresenceManager {
                     onlineStatus = DiscordOnlineStatus.fromPreference(context.pref(Prefs.ActivityStatusKey, "online")),
                 )
 
+            if (activity == lastActivity && DiscordSocialPresenceClient.isStarted && now - lastSentAtMs < MIN_INTERVAL_MS) return
+            Timber.tag(TAG).i("Publishing name=%s type=%s (%d)", activity.name, activity.type.name, activity.type.nativeValue)
             DiscordSocialPresenceClient
                 .updatePresence(token, activity)
                 .onSuccess {
+                    lastActivity = activity
                     lastSent = request
                     lastSentAtMs = now
                     _state.value = PresenceState.Sharing(request)
@@ -139,15 +142,20 @@ object PresenceManager {
         DiscordSocialPresenceClient
             .clearPresence(token)
             .onFailure { Timber.tag(TAG).w(it, "clear presence failed") }
+        lastActivity = null
         lastSent = null
         lastSentAtMs = 0L
         _state.value = PresenceState.Idle
         Timber.tag(TAG).i("presence cleared")
     }
 
-    suspend fun shutdown(context: Context) {
-        clear(context)
-        DiscordSocialPresenceClient.close()
+    suspend fun shutdown(context: Context, shouldClose: () -> Boolean = { true }) {
+        mutex.withLock {
+            if (!shouldClose()) return
+            clearLocked(context)
+            // A replacement detection service may have started while clearing.
+            if (shouldClose()) DiscordSocialPresenceClient.close()
+        }
     }
 
     private suspend fun resolveApplicationId(context: Context): Long =

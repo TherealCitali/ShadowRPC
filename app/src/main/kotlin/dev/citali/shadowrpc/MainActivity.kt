@@ -65,6 +65,16 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        setContent {
+            ShadowRpcTheme {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    ShadowRpcRoot()
+                }
+            }
+        }
+    }
+    override fun onStart() {
+        super.onStart()
         // Resume detection if the process was killed while it was on.
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -75,14 +85,8 @@ class MainActivity : ComponentActivity() {
                 timber.log.Timber.tag("Startup").e(error, "Could not resume detection")
             }
         }
-        setContent {
-            ShadowRpcTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    ShadowRpcRoot()
-                }
-            }
-        }
     }
+
 }
 
 private data class DrawerEntry(

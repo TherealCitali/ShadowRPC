@@ -58,6 +58,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import dev.citali.shadowrpc.R
+import dev.citali.shadowrpc.data.setPref
 import dev.citali.shadowrpc.data.Prefs
 import dev.citali.shadowrpc.data.rememberPreference
 import dev.citali.shadowrpc.detection.AppDetectionService
@@ -79,7 +80,7 @@ fun HomeAppList(
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val (enabled, setEnabled) = rememberPreference(Prefs.AppDetectionEnabledKey, false)
+    val (enabled) = rememberPreference(Prefs.AppDetectionEnabledKey, false)
     val (watched, setWatched) = rememberPreference(Prefs.AppDetectionPackagesKey, emptySet())
     val (showIcon, setShowIcon) = rememberPreference(Prefs.AppDetectionShowIconKey, false)
     val (timestamps, setTimestamps) = rememberPreference(Prefs.AppDetectionTimestampsKey, true)
@@ -115,20 +116,25 @@ fun HomeAppList(
             }
         }
 
+    var changingDetection by remember { mutableStateOf(false) }
     fun toggleEnabled(wanted: Boolean) {
-        if (!wanted) {
-            setEnabled(false)
-            AppDetectionService.stop(context)
-            return
-        }
-        if (!hasUsageAccess) return
+        if (changingDetection || (wanted && !hasUsageAccess)) return
+        changingDetection = true
         scope.launch {
-            val token = DiscordOAuthRepository.getValidAccessToken(context)
-            if (token.isNullOrBlank()) {
-                onNeedLogin()
-            } else {
-                setEnabled(true)
-                AppDetectionService.start(context)
+            try {
+                if (wanted && DiscordOAuthRepository.getValidAccessToken(context).isNullOrBlank()) {
+                    onNeedLogin()
+                    return@launch
+                }
+                // Commit before starting/stopping: the service reads this on its first poll.
+                context.setPref(Prefs.AppDetectionEnabledKey, wanted)
+                if (wanted) AppDetectionService.start(context) else AppDetectionService.stop(context)
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                timber.log.Timber.tag("DetectionSettings").e(error, "Could not change detection setting")
+            } finally {
+                changingDetection = false
             }
         }
     }
@@ -148,7 +154,7 @@ fun HomeAppList(
                         title = stringResource(R.string.app_detection_enable),
                         checked = enabled,
                         onCheckedChange = ::toggleEnabled,
-                        enabled = hasUsageAccess,
+                        enabled = !changingDetection && (enabled || hasUsageAccess),
                         icon = Icons.Outlined.Apps,
                     )
                 }

@@ -58,5 +58,6 @@ object AppPresenceOverrides {
             val watched = prefs[Prefs.AppDetectionPackagesKey].orEmpty()
             prefs[Prefs.AppDetectionPackagesKey] = if (enabled) watched + packageName else watched - packageName
         }
+        timber.log.Timber.tag("AppOptions").i("Saved %s: type=%s nameSource=%s shared=%s", packageName, value.type ?: "global", value.name?.name ?: "global", enabled)
     }
 }

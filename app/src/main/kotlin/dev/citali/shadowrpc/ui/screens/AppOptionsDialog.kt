@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -41,11 +42,12 @@ fun AppOptionsDialog(app: InstalledApp, initialLabel: String, initiallyEnabled: 
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf(false) }
     val bitmap = remember(app.packageName) { InstalledApps.icon(context, app.packageName)?.toBitmap(128, 128)?.asImageBitmap() }
+    val maxHeight = (LocalConfiguration.current.screenHeightDp * 0.88f).dp
     val inherit = stringResource(R.string.app_options_inherit)
 
     Dialog(onDismissRequest = { if (!saving) onDismiss() }) {
         Surface(shape = RoundedCornerShape(32.dp), color = MaterialTheme.colorScheme.surfaceContainer) {
-            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+            Column(Modifier.fillMaxWidth().heightIn(max = maxHeight).imePadding()) {
                 Surface(shape = RoundedCornerShape(32.dp), color = MaterialTheme.colorScheme.primaryContainer) {
                     Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         bitmap?.let { Image(it, null, Modifier.size(52.dp).clip(RoundedCornerShape(18.dp))) }
@@ -59,7 +61,7 @@ fun AppOptionsDialog(app: InstalledApp, initialLabel: String, initiallyEnabled: 
                         }
                     }
                 }
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(app.packageName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(stringResource(R.string.app_options_hint), style = MaterialTheme.typography.bodyMedium)
                     OptionCard {
@@ -92,22 +94,22 @@ fun AppOptionsDialog(app: InstalledApp, initialLabel: String, initiallyEnabled: 
                         Text(stringResource(R.string.app_options_reset))
                     }
                     if (error) Text(stringResource(R.string.app_options_save_error), color = MaterialTheme.colorScheme.error)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(onClick = onDismiss, enabled = !saving) { Text(stringResource(R.string.action_cancel)) }
-                        Button(enabled = !saving, onClick = {
-                            saving = true
-                            scope.launch {
-                                try {
-                                    AppPresenceOverrides.save(context, app.packageName, label, enabled, draft)
-                                    onDismiss()
-                                } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                                    throw cancelled
-                                } catch (_: Exception) {
-                                    error = true
-                                } finally { saving = false }
-                            }
-                        }) { Text(stringResource(R.string.action_save)) }
-                    }
+                }
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss, enabled = !saving) { Text(stringResource(R.string.action_cancel)) }
+                    Button(enabled = !saving, onClick = {
+                        saving = true
+                        scope.launch {
+                            try {
+                                AppPresenceOverrides.save(context, app.packageName, label, enabled, draft)
+                                onDismiss()
+                            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                                throw cancelled
+                            } catch (_: Exception) {
+                                error = true
+                            } finally { saving = false }
+                        }
+                    }) { Text(stringResource(R.string.action_save)) }
                 }
             }
         }

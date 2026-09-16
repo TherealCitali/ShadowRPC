@@ -185,3 +185,32 @@ Pending device checks: open a selected app and immediately switch to Discord;
 verify icon appears when upload/registration completes, grace still expires,
 and master Off/unselect still clears. Check activity heading on Android/desktop.
 Static diff check passed; compilation and Discord rendering not verified here.
+
+## Settings mismatch and automatic-stop investigation
+
+Confirmed code issues fixed:
+- App options Save/Cancel lived below the scrollable form. They now remain in a
+  fixed footer; the screenshot's displayed choices may have been unsaved drafts.
+- Detection enable was written in a separate launched preference coroutine before
+  service startup. Await the DataStore write before starting/stopping; debounce
+  the toggle. This prevents first-poll reads of the old disabled preference.
+- Presence deduplication ignored changes to global type/status/application ID.
+  Compare the resolved activity instead, using monotonic time, and bypass dedupe
+  for disconnected gateways. Log the effective published name/type.
+- Recheck enabled detection on every Activity onStart, not just onCreate. No
+  runBlocking on this path. Explicit Off remains off. Usage permission loss stops
+  detection without silently clearing the desired-enabled preference.
+- Bound publish calls to 45 seconds; timeout retries instead of cancelling the
+  poll loop. Avoid an old service teardown closing a replacement's connection.
+- Add a 30-second polling heartbeat and service-destroy message. Saved per-app
+  type/source and effective outgoing name/type have separate log entries.
+
+No screenshot proves an OS process kill. Prior-crash/exit diagnostics remain the
+way to distinguish a crash, background kill, stopped poller and disconnected
+Discord transport. Android may still kill/force-stop apps; no promise of an
+unkillable service. Pending device checks: rapid toggle, persist/reopen app
+options, global vs per-app Listening, disconnect/reconnect, idle -> selected app,
+permission revoke/regrant, service restart and large-font fixed footer.
+
+Static delimiter and whitespace checks passed. Compilation and device execution
+remain unverified in this Java 11/no Android SDK editing environment.
