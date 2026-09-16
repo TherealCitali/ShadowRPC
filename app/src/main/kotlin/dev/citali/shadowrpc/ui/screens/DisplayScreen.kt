@@ -58,7 +58,7 @@ import dev.citali.shadowrpc.ui.theme.SeedColors
 fun DisplayScreen(onBack: () -> Unit) {
     val (darkMode, setDarkMode) = rememberEnumPreference(Prefs.DarkModeKey, DarkMode.AUTO)
     val (pureBlack, setPureBlack) = rememberPreference(Prefs.PureBlackKey, false)
-    val (dynamicColor, setDynamicColor) = rememberPreference(Prefs.DynamicColorKey, false)
+    val (dynamicColor, setDynamicColor) = rememberPreference(Prefs.DynamicColorKey, Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
     val (seed, setSeed) = rememberPreference(Prefs.SeedColorKey, SeedColors.first().toArgb().toLong())
     var darkDialog by remember { mutableStateOf(false) }
 

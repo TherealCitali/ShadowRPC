@@ -15,6 +15,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -75,15 +77,15 @@ fun AccountContent() {
 
     Column {
         Card(
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(32.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 24.dp),
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)) {
+                .padding(20.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth(),
@@ -115,9 +117,29 @@ fun AccountContent() {
                     }
                 }
                 Spacer(Modifier.height(20.dp))
+                Surface(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                    color = if (error != null || !hasAppId) MaterialTheme.colorScheme.errorContainer
+                        else MaterialTheme.colorScheme.surfaceContainerHighest,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = when {
+                            !hasAppId -> stringResource(R.string.account_missing_app_id)
+                            error != null -> stringResource(R.string.account_login_failed, error.orEmpty())
+                            token.isNotBlank() -> stringResource(R.string.home_account_ready)
+                            else -> stringResource(R.string.account_login_hint)
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (error != null || !hasAppId) MaterialTheme.colorScheme.onErrorContainer
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(20.dp),
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
                 if (token.isBlank()) {
                     Button(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                         enabled = hasAppId,
                         onClick = {
                             val session = DiscordOAuthRepository.createAuthorizationSession()
@@ -126,7 +148,7 @@ fun AccountContent() {
                         },
                     ) { Text(stringResource(R.string.account_login)) }
                 } else {
-                    OutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = {
+                    OutlinedButton(modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), onClick = {
                         scope.launch {
                             AppDetectionService.stop(context)
                             PresenceManager.shutdown(context)
@@ -136,18 +158,7 @@ fun AccountContent() {
                 }
             }
         }
-        Spacer(Modifier.height(16.dp))
-        Text(
-            text =
-                when {
-                    !hasAppId -> stringResource(R.string.account_missing_app_id)
-                    error != null -> stringResource(R.string.account_login_failed, error.orEmpty())
-                    else -> stringResource(R.string.account_login_hint)
-                },
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (error != null || !hasAppId) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 32.dp),
-        )
+
     }
 }
 

@@ -39,14 +39,14 @@ fun PresencePreview(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = modifier.fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
-                text = "$activityTypeLabel ${name}".uppercase(),
-                style = MaterialTheme.typography.labelMedium,
+                text = activityTypeLabel,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -57,7 +57,7 @@ fun PresencePreview(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(60.dp)
+                        .size(80.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(MaterialTheme.colorScheme.primaryContainer),
                 ) {
@@ -65,7 +65,7 @@ fun PresencePreview(
                 }
                 Spacer(Modifier.width(14.dp))
                 Column {
-                    Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     if (!details.isNullOrBlank()) {
                         Text(details, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }

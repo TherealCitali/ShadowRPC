@@ -19,6 +19,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -125,12 +127,18 @@ fun HomeScreen(
             PresenceSettingsContent(showAdvanced = false) {
                 PreferenceGroupTitle(stringResource(R.string.feature_app_detection))
                 PreferenceCard {
-                    SwitchPreference(
-                        title = stringResource(R.string.app_detection_enable),
-                        checked = detectionEnabled && serviceRunning,
-                        onCheckedChange = ::setAppDetection,
-                        icon = Icons.Outlined.Apps,
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(24.dp),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    ) {
+                        SwitchPreference(
+                            title = stringResource(R.string.app_detection_enable),
+                            checked = detectionEnabled && serviceRunning,
+                            onCheckedChange = ::setAppDetection,
+                            icon = Icons.Outlined.Apps,
+                        )
+                    }
                     PreferenceEntry(
                         title = stringResource(R.string.home_manage_apps),
                         description = stringResource(R.string.home_manage_apps_summary),

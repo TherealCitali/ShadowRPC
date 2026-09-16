@@ -118,18 +118,21 @@ fun PresenceSettingsContent(
         PreferenceCard {
             PreferenceEntry(
                 title = stringResource(R.string.settings_activity_type),
+                pillDescription = true,
                 description = stringResource(activityTypes.first { it.first == activityType }.second),
                 icon = Icons.Outlined.Code,
                 onClick = { typeDialog = true },
             )
             PreferenceEntry(
                 title = stringResource(R.string.settings_activity_status),
+                pillDescription = true,
                 description = stringResource(activityStatuses.first { it.first == activityStatus }.second),
                 icon = Icons.Outlined.DoNotDisturbOn,
                 onClick = { statusDialog = true },
             )
             PreferenceEntry(
                 title = stringResource(R.string.settings_application_id),
+                pillDescription = true,
                 description = customAppId.ifBlank { stringResource(R.string.settings_application_id_summary) },
                 icon = Icons.Outlined.Pin,
                 onClick = { appIdDialog = true },
@@ -137,14 +140,6 @@ fun PresenceSettingsContent(
         }
         PreferenceGroupTitle(stringResource(R.string.settings_activity_content))
         PreferenceCard {
-            PresencePreview(
-                activityTypeLabel = stringResource(activityTypes.first { it.first == activityType }.second),
-                name = preview.name,
-                details = preview.details,
-                state = preview.state,
-                showTimestamp = timestamps,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            )
             Text(
                 text = stringResource(R.string.settings_activity_content_hint),
                 style = MaterialTheme.typography.bodyMedium,
@@ -153,21 +148,32 @@ fun PresenceSettingsContent(
             )
             PreferenceEntry(
                 title = stringResource(R.string.settings_activity_name),
+                pillDescription = true,
                 description = sourceLabel(nameSource, nameCustom),
                 icon = Icons.Outlined.Badge,
                 onClick = { editingLine = ActivityLine.NAME },
             )
             PreferenceEntry(
                 title = stringResource(R.string.settings_activity_details),
+                pillDescription = true,
                 description = sourceLabel(detailsSource, detailsCustom),
                 icon = Icons.Outlined.Notes,
                 onClick = { editingLine = ActivityLine.DETAILS },
             )
             PreferenceEntry(
                 title = stringResource(R.string.settings_activity_state),
+                pillDescription = true,
                 description = sourceLabel(stateSource, stateCustom),
                 icon = Icons.Outlined.ShortText,
                 onClick = { editingLine = ActivityLine.STATE },
+            )
+            PresencePreview(
+                activityTypeLabel = stringResource(activityTypes.first { it.first == activityType }.second),
+                name = preview.name,
+                details = preview.details,
+                state = preview.state,
+                showTimestamp = timestamps,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
         afterActivityContent()

@@ -21,7 +21,8 @@ import dev.citali.shadowrpc.data.rememberPreference
 /** Seed colours offered in Display, in the order they appear in the picker. */
 val SeedColors: List<Color> =
     listOf(
-        Color(0xFFB69DF8), // lavender (default)
+        Color(0xFFBFC9AD), // sage (fallback default, matching the LunarTune reference)
+        Color(0xFFB69DF8), // lavender
         Color(0xFFC9B8C8), // mauve
         Color(0xFF8FC7F0), // sky
         Color(0xFFB4C0F5), // periwinkle
@@ -35,7 +36,7 @@ val SeedColors: List<Color> =
 fun ShadowRpcTheme(content: @Composable () -> Unit) {
     val (darkMode) = rememberEnumPreference(Prefs.DarkModeKey, DarkMode.AUTO)
     val (pureBlack) = rememberPreference(Prefs.PureBlackKey, false)
-    val (dynamicColor) = rememberPreference(Prefs.DynamicColorKey, false)
+    val (dynamicColor) = rememberPreference(Prefs.DynamicColorKey, Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
     val (seedArgb) = rememberPreference(Prefs.SeedColorKey, SeedColors.first().toArgb().toLong())
 
     val systemDark = isSystemInDarkTheme()
