@@ -121,7 +121,7 @@ class AppDetectionService : LifecycleService() {
                 val heartbeatNow = SystemClock.elapsedRealtime()
                 if (heartbeatNow - lastHeartbeat >= 30_000L) {
                     lastHeartbeat = heartbeatNow
-                    Timber.tag(TAG).i("Poll alive: foreground=%s selected=%s gatewayReady=%s", foreground, target != null,
+                    Timber.tag(TAG).d("Poll alive: foreground=%s selected=%s gatewayReady=%s", foreground, target != null,
                         dev.citali.shadowrpc.discord.DiscordSocialPresenceClient.isStarted)
                 }
 

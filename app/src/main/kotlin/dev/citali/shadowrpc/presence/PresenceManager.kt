@@ -105,7 +105,9 @@ object PresenceManager {
                 )
 
             if (activity == lastActivity && DiscordSocialPresenceClient.isStarted && now - lastSentAtMs < MIN_INTERVAL_MS) return
-            Timber.tag(TAG).i("Publishing name=%s type=%s (%d)", activity.name, activity.type.name, activity.type.nativeValue)
+            val changed = activity != lastActivity
+            if (changed) Timber.tag(TAG).i("Publishing name=%s type=%s (%d)", activity.name, activity.type.name, activity.type.nativeValue)
+            else Timber.tag(TAG).d("Refreshing unchanged presence")
             DiscordSocialPresenceClient
                 .updatePresence(token, activity)
                 .onSuccess {
@@ -113,7 +115,7 @@ object PresenceManager {
                     lastSent = request
                     lastSentAtMs = now
                     _state.value = PresenceState.Sharing(request)
-                    Timber.tag(TAG).i("presence -> %s / %s", request.name, request.details)
+                    Timber.tag(TAG).d("presence -> %s / %s", request.name, request.details)
                 }.onFailure { error ->
                     _state.value = PresenceState.Error(error.message ?: "Presence update failed")
                     Timber.tag(TAG).w(error, "presence update failed")
@@ -124,6 +126,7 @@ object PresenceManager {
     /** Serialize the master switch with in-flight publishes so Off always wins. */
     suspend fun setEnabled(context: Context, enabled: Boolean) {
         mutex.withLock {
+            Timber.tag(TAG).i("User changed master RPC: enabled=%s", enabled)
             context.setPref(Prefs.RpcEnabledKey, enabled)
             if (!enabled) {
                 clearLocked(context)

@@ -330,7 +330,7 @@ class GatewayClient {
                 val obj = d as JSONObject
                 val re = GatewayReadyEvent.fromJson(obj)
                 ownUserId = obj.optJSONObject("user")?.optString("id")
-                debug("READY: user=${re.user.username} (${re.user.id}) session=${re.sessionId}")
+                debug("READY: authenticated session established")
                 sessionState = GatewaySessionState(re.sessionId, liveSeq, re.resumeGatewayUrl)
                 touchSession(re.sessionId, liveSeq, re.resumeGatewayUrl)
                 readyReceived = true

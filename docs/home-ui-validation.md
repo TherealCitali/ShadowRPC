@@ -236,3 +236,24 @@ Saved/Publishing/Presence queued lines. Repeat with Listening. Compare with a
 second Discord client. Android's card layout may differ from member-list status.
 This is a compatibility attempt, not a confirmed rendering fix; device testing
 and Android compilation remain pending.
+
+## Log export and noise control
+
+Logs toolbar Export uses Android CreateDocument (text/plain); no broad storage
+permission or clipboard required. On destination selection, snapshot the bounded
+buffer, redact, then write UTF-8 on IO with success/failure feedback. Picker cancel
+writes nothing. Exports contain app version, Android API and timestamp. Partial
+files may remain if the provider fails or the activity is destroyed mid-write.
+
+Verbose defaults Off per process. INFO/WARN/ERROR remain visible; normal gateway
+dispatch/heartbeat, poll heartbeat, unchanged refresh and queued-send chatter
+requires Verbose. Enable before reproducing to retain those diagnostics; turning
+it on does not reconstruct discarded history. Errors and changed effective
+name/type remain normal-level logs. Buffer stays capped at 400 entries.
+READY no longer logs account/session identifiers; redaction includes session keys.
+Master RPC toggle now logs the explicit user request to distinguish that path
+from unexplained service/process termination.
+
+Pending device checks: export/cancel/provider failure, large buffer, UTF-8 text,
+Clear then export, verbose off/on during gateway traffic, review file before
+sharing. Resource and whitespace checks pass; build/device tests not run here.

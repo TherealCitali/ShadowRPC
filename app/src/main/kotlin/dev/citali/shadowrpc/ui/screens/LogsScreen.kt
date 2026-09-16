@@ -3,6 +3,15 @@ package dev.citali.shadowrpc.ui.screens
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
+import dev.citali.shadowrpc.BuildConfig
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -45,6 +54,34 @@ import dev.citali.shadowrpc.util.InMemoryLogTree
 fun LogsScreen(onBack: () -> Unit) {
     val lines by InMemoryLogTree.lines.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val verbose by InMemoryLogTree.verbose.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+    var exporting by remember { mutableStateOf(false) }
+    var exportResult by remember { mutableStateOf<Int?>(null) }
+    val exportLogs = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        if (uri != null) {
+            // Snapshot once the user chooses a destination; file I/O stays off the UI thread.
+            val snapshot = InMemoryLogTree.lines.value
+            val text = "ShadowRPC ${BuildConfig.VERSION_NAME} / Android ${android.os.Build.VERSION.SDK_INT}\n" +
+                "Exported ${java.util.Date()} — ${snapshot.size} buffered entries\n\n" +
+                snapshot.joinToString("\n") { "${it.time} [${it.priority}] ${it.tag ?: "-"}: ${it.message}" }
+            exporting = true
+            scope.launch {
+                try {
+                    withContext(Dispatchers.IO) {
+                        val stream = context.contentResolver.openOutputStream(uri, "wt")
+                            ?: error("Cannot open export destination")
+                        stream.bufferedWriter(Charsets.UTF_8).use { it.write(InMemoryLogTree.redact(text)) }
+                    }
+                    exportResult = R.string.logs_export_success
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    exportResult = R.string.logs_export_failed
+                } finally { exporting = false }
+            }
+        }
+    }
     val floating by FloatingLogsService.running.collectAsStateWithLifecycle()
     val serviceError by FloatingLogsService.error.collectAsStateWithLifecycle()
     var follow by remember { mutableStateOf(true) }
@@ -62,6 +99,10 @@ fun LogsScreen(onBack: () -> Unit) {
             Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.action_back))
         } },
         actions = {
+            IconButton(enabled = !exporting, onClick = {
+                runCatching { exportLogs.launch("ShadowRPC-logs-${System.currentTimeMillis()}.txt") }
+                    .onFailure { exportResult = R.string.logs_export_failed }
+            }) { Icon(Icons.Outlined.FileDownload, stringResource(R.string.logs_export)) }
             IconButton(onClick = {
                 val text = lines.joinToString("\n") { "${it.time} ${it.tag ?: "-"}: ${it.message}" }
                 context.getSystemService(ClipboardManager::class.java)?.setPrimaryClip(ClipData.newPlainText("ShadowRPC logs", text))
@@ -77,6 +118,12 @@ fun LogsScreen(onBack: () -> Unit) {
             title = stringResource(R.string.logs_follow), checked = follow,
             onCheckedChange = { follow = it },
         )
+        SwitchPreference(
+            title = stringResource(R.string.logs_verbose), checked = verbose,
+            onCheckedChange = { InMemoryLogTree.verbose.value = it },
+        )
+        exportResult?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 16.dp)) }
         Button(
             modifier = Modifier.padding(horizontal = 16.dp),
             onClick = {

@@ -88,7 +88,7 @@ object DiscordSocialPresenceClient {
 
                     if (sent) {
                         lastIdentity = identity
-                        Timber.tag(TAG).i("Presence queued (not server acknowledgement): appId=%d name=%s type=%d largeImage=%s",
+                        Timber.tag(TAG).d("Presence queued (not server acknowledgement): appId=%d name=%s type=%d largeImage=%s",
                             activity.applicationId, activity.name, activity.type.nativeValue,
                             presenceJson.getJSONArray("activities").getJSONObject(0).optJSONObject("assets")?.has("large_image") == true)
                         if (attempt > 0) {
