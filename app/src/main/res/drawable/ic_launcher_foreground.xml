@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- moon body -->
+    <path
+        android:fillColor="#E9DDFF"
+        android:pathData="M54,26a28,28 0,1 0,0 56a22,22 0,1 1,0 -56z" />
+    <!-- three presence dots -->
+    <path
+        android:fillColor="#B69DF8"
+        android:pathData="M62,50m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0z" />
+    <path
+        android:fillColor="#B69DF8"
+        android:pathData="M74,50m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0z" />
+    <path
+        android:fillColor="#B69DF8"
+        android:pathData="M68,62m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0z" />
+</vector>

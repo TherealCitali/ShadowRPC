@@ -1,0 +1,91 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ 'main', 'dev' ]
+    paths-ignore:
+      - '**.md'
+      - 'assets/**'
+  pull_request:
+    branches: [ 'main', 'dev' ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ github.event_name == 'pull_request' && 'Debug' || 'Release' }} APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-cleanup: on-success
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/dev' }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # Pull requests from forks cannot read secrets, so they only get a debug build.
+      - name: Build debug APK (pull request)
+        if: github.event_name == 'pull_request'
+        run: ./gradlew assembleDebug :app:lintDebug
+
+      - name: Build release APK
+        if: github.event_name != 'pull_request'
+        env:
+          DISCORD_APPLICATION_ID: ${{ secrets.DISCORD_APPLICATION_ID }}
+        run: ./gradlew assembleRelease
+
+      - name: Sign release APK
+        id: sign
+        if: github.event_name != 'pull_request' && env.KEYSTORE != ''
+        uses: ilharp/sign-android-release@v2.0.0
+        env:
+          KEYSTORE: ${{ secrets.KEYSTORE }}
+        with:
+          releaseDir: app/build/outputs/apk/release/
+          signingKey: ${{ secrets.KEYSTORE }}
+          keyAlias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+          buildToolsVersion: 35.0.0
+
+      - name: Collect APK
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT=app/build/outputs/apk/release/out
+          mkdir -p "$OUT"
+          SIGNED="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*-signed.apk' | head -n 1 || true)"
+          if [ -n "$SIGNED" ]; then
+            cp "$SIGNED" "$OUT/ShadowRPC-release.apk"
+          else
+            echo "No signing secrets configured; uploading the unsigned APK."
+            cp app/build/outputs/apk/release/app-release-unsigned.apk "$OUT/ShadowRPC-release-unsigned.apk"
+          fi
+
+      - name: Upload release APK
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ShadowRPC-release
+          path: app/build/outputs/apk/release/out/*.apk
+
+      - name: Upload debug APK
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ShadowRPC-debug
+          path: app/build/outputs/apk/debug/*.apk

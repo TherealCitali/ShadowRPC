@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ShadowRPC</string>
+
+    <!-- Home -->
+    <string name="home_welcome">Welcome,</string>
+    <string name="home_welcome_name">Welcome, %1$s</string>
+    <string name="home_features">Features</string>
+    <string name="home_chip_discord">Discord</string>
+    <string name="home_chip_telegram">Telegram</string>
+    <string name="home_chip_github">GitHub</string>
+    <string name="cant_load_link">Can\'t load link</string>
+    <string name="state_on">On</string>
+    <string name="state_off">Off</string>
+    <string name="coming_soon">Coming Soon</string>
+
+    <!-- Features -->
+    <string name="feature_app_detection">App Detection</string>
+    <string name="feature_media_rpc">Media RPC</string>
+    <string name="feature_custom_rpc">Custom RPC</string>
+    <string name="feature_console_rpc">Console RPC</string>
+    <string name="feature_experimental">Experimental</string>
+
+    <!-- Drawer -->
+    <string name="drawer_display">Display</string>
+    <string name="drawer_language">Language</string>
+    <string name="drawer_logs">Logs</string>
+    <string name="drawer_settings">Settings</string>
+    <string name="drawer_help">Help</string>
+    <string name="drawer_faq">FAQ</string>
+    <string name="drawer_discord">Discord</string>
+    <string name="drawer_telegram">Telegram</string>
+    <string name="drawer_about">About</string>
+
+    <!-- Account -->
+    <string name="account_title">Discord account</string>
+    <string name="account_login">Sign in with Discord</string>
+    <string name="account_logout">Sign out</string>
+    <string name="account_not_linked">Not linked</string>
+    <string name="account_linked_as">Signed in as %1$s</string>
+    <string name="account_login_hint">ShadowRPC uses Discord\'s official OAuth login. It only receives permission to show your activity; it never sees your messages or password.</string>
+    <string name="account_missing_app_id">This build has no Discord Application ID. Add DISCORD_APPLICATION_ID to local.properties or the repository secrets and rebuild.</string>
+    <string name="account_login_failed">Discord sign-in failed: %1$s</string>
+
+    <!-- App detection -->
+    <string name="app_detection_enable">Enable App Detection</string>
+    <string name="app_detection_permission_title">Usage access required</string>
+    <string name="app_detection_permission_body">App Detection needs Usage access to know which app is in the foreground. Nothing is read from inside the apps.</string>
+    <string name="app_detection_grant">Grant access</string>
+    <string name="app_detection_search">Search apps</string>
+    <string name="app_detection_no_apps">No apps match your search</string>
+    <string name="app_detection_notification_channel">App Detection</string>
+    <string name="app_detection_notification_idle">Watching for enabled apps</string>
+    <string name="app_detection_notification_active">Sharing: %1$s</string>
+    <string name="app_detection_notification_stop">Stop</string>
+    <string name="app_detection_login_required">Sign in with Discord first</string>
+    <string name="app_detection_show_icon">Show app icon</string>
+    <string name="app_detection_show_icon_summary">Use the app\'s launcher icon as the large image</string>
+    <string name="app_detection_timestamps">Enable timestamps</string>
+    <string name="app_detection_timestamps_summary">Show how long the app has been open</string>
+
+    <!-- Settings -->
+    <string name="settings_general">General</string>
+    <string name="settings_activity_type">Activity type</string>
+    <string name="settings_activity_type_summary">How the presence is prefixed on your profile</string>
+    <string name="settings_activity_name">Activity name</string>
+    <string name="activity_name_app">Detected app name (e.g. Playing Genshin Impact)</string>
+    <string name="activity_name_shadowrpc">ShadowRPC (app name goes in details)</string>
+    <string name="settings_activity_status">Activity status</string>
+    <string name="settings_activity_status_summary">Online status while ShadowRPC is sharing</string>
+    <string name="settings_application_id">Custom Activity Application ID</string>
+    <string name="settings_application_id_summary">Overrides the default Discord Application ID</string>
+    <string name="settings_advanced">Advanced Settings</string>
+    <string name="settings_low_res_images">Use low resolution images</string>
+    <string name="settings_low_res_images_summary">Upload smaller app icons to Discord. Turn on if presence images fail.</string>
+    <string name="settings_clear_icon_cache">Delete saved icon links</string>
+    <string name="settings_clear_icon_cache_summary">Icons will be uploaded to Discord again the next time they are shown.</string>
+    <string name="settings_reset_done">Done</string>
+
+    <!-- Display -->
+    <string name="display_dark_theme">Dark theme</string>
+    <string name="display_follow_system">Follow system</string>
+    <string name="display_on">On</string>
+    <string name="display_off">Off</string>
+    <string name="display_pure_black">Pure black</string>
+    <string name="display_pure_black_summary">Use a true black background in dark theme</string>
+    <string name="display_dynamic_color">Dynamic colours</string>
+    <string name="display_dynamic_color_summary">Follow the system wallpaper palette</string>
+
+    <!-- Logs / About -->
+    <string name="logs_empty">Nothing logged yet</string>
+    <string name="logs_clear">Clear</string>
+    <string name="logs_copy">Copy</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_source">Source code</string>
+    <string name="about_source_summary">github.com/TherealCitali/ShadowRPC</string>
+    <string name="about_license">Licence</string>
+    <string name="about_license_summary">GNU General Public License v3.0</string>
+    <string name="about_credits">Credits</string>
+    <string name="about_credits_summary">Discord gateway and OAuth code is shared with LunarTune. UI inspired by Kizzy.</string>
+
+    <!-- Activity types -->
+    <string name="activity_type_playing">Playing</string>
+    <string name="activity_type_listening">Listening</string>
+    <string name="activity_type_watching">Watching</string>
+    <string name="activity_type_competing">Competing</string>
+    <string name="activity_status_online">Online</string>
+    <string name="activity_status_idle">Idle</string>
+    <string name="activity_status_dnd">Do not disturb</string>
+
+    <string name="action_back">Back</string>
+    <string name="action_menu">Menu</string>
+    <string name="action_refresh">Reconnect</string>
+    <string name="action_account">Account</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+</resources>
