@@ -129,6 +129,9 @@ class AppDetectionService : LifecycleService() {
                             }
                             val remaining = BACKGROUND_GRACE_MS - (now - since)
                             if (remaining > 0L) {
+                                // Complete late icon uploads while the user checks Discord.
+                                // Keep the original session timestamp and grace deadline.
+                                publish(previous, background = true)
                                 updateNotification(getString(R.string.detection_background_grace,
                                     InstalledApps.label(this, previous), (remaining + 999L) / 1000L))
                                 delay(POLL_INTERVAL_MS)
@@ -166,7 +169,7 @@ class AppDetectionService : LifecycleService() {
         }
     }
 
-    private suspend fun publish(packageName: String) {
+    private suspend fun publish(packageName: String, background: Boolean = false) {
         val subject = AppLabels.subject(this, packageName)
         val overrides = AppPresenceOverrides.load(this, packageName)
         val text = ActivityTemplate.resolve(overrides.applyTo(ActivityContent.load(this)), subject, getString(R.string.app_name))
@@ -180,7 +183,13 @@ class AppDetectionService : LifecycleService() {
             iconAttempts[packageName] = System.currentTimeMillis()
             iconJob = lifecycleScope.launch {
                 try {
-                    IconHost.urlFor(this@AppDetectionService, packageName)?.let { iconUrls[packageName] = it }
+                    val url = IconHost.urlFor(this@AppDetectionService, packageName)
+                    if (url != null) {
+                        iconUrls[packageName] = url
+                        Timber.tag(TAG).i("App icon ready for %s", packageName)
+                    } else {
+                        Timber.tag(TAG).w("App icon unavailable for %s; retrying later", packageName)
+                    }
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {
@@ -188,7 +197,7 @@ class AppDetectionService : LifecycleService() {
                 }
             }
         }
-        if (PresenceManager.state.value !is PresenceState.Sharing) {
+        if (!background && PresenceManager.state.value !is PresenceState.Sharing) {
             updateNotification(getString(R.string.detection_detected, subject.appLabel))
         }
         PresenceManager.update(
@@ -203,7 +212,7 @@ class AppDetectionService : LifecycleService() {
                 startEpochSeconds = if (timestamps) sharedSinceEpochSeconds else null,
             ),
         )
-        updateNotification(
+        if (!background) updateNotification(
             when {
                 !pref(Prefs.RpcEnabledKey, true) -> getString(R.string.rpc_paused)
                 PresenceManager.state.value is PresenceState.Error -> getString(R.string.detection_publish_error, subject.appLabel)

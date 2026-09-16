@@ -262,6 +262,7 @@ object DiscordSocialPresenceClient {
 
         activityJson.put("name", activity.name ?: "ShadowRPC")
         activityJson.put("type", activity.type.nativeValue)
+        activityJson.put("status_display_type", activity.statusDisplayType.nativeValue)
 
         activity.details?.let { activityJson.put("details", it) }
         activity.state?.let { activityJson.put("state", it) }

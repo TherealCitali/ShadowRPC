@@ -167,3 +167,21 @@ Static resource references and alpha extrema checked. Device checks pending:
 background at 119/150/180 seconds; same-app return at 100 seconds; switch to a
 second selected app; unselect/RPC Off during grace; screen lock; light/dark
 notification visibility. Build and runtime behaviour remain unverified here.
+
+## Detected-app status name and late artwork
+
+PresenceManager explicitly selects Name for Discord's status display; the gateway
+serializer now includes status_display_type, which was previously ignored.
+Discord clients decide the exact placement of the Playing heading. Existing
+activity-name/source and per-app overrides remain respected; application ID is
+unchanged. A configured ShadowRPC state line is not silently removed.
+
+Grace-period polls now refresh the retained app through the existing deduplication
+path, allowing a late app-icon upload to reach Discord after the user leaves the
+app. Session timestamp and grace deadline remain unchanged. Icon-ready/failure
+messages aid diagnosis; Show app icon still controls optional Catbox uploads.
+
+Pending device checks: open a selected app and immediately switch to Discord;
+verify icon appears when upload/registration completes, grace still expires,
+and master Off/unselect still clears. Check activity heading on Android/desktop.
+Static diff check passed; compilation and Discord rendering not verified here.

@@ -5,6 +5,7 @@ import dev.citali.shadowrpc.BuildConfig
 import dev.citali.shadowrpc.data.Prefs
 import dev.citali.shadowrpc.data.setPref
 import dev.citali.shadowrpc.data.pref
+import dev.citali.shadowrpc.discord.DiscordStatusDisplayType
 import dev.citali.shadowrpc.discord.DiscordActivityType
 import dev.citali.shadowrpc.discord.DiscordAssetRegistrar
 import dev.citali.shadowrpc.discord.DiscordOAuthRepository
@@ -84,6 +85,7 @@ object PresenceManager {
                 DiscordPresenceActivity(
                     applicationId = applicationId,
                     name = request.name,
+                    statusDisplayType = DiscordStatusDisplayType.Name,
                     type = DiscordActivityType.fromPreference(request.activityType ?: context.pref(Prefs.ActivityTypeKey, "PLAYING")),
                     details = request.details,
                     state = request.state,
