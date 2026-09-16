@@ -26,6 +26,7 @@ import timber.log.Timber
  */
 data class PresenceRequest(
     val name: String,
+    val activityType: String? = null,
     val details: String? = null,
     val state: String? = null,
     val largeImage: String? = null,
@@ -83,7 +84,7 @@ object PresenceManager {
                 DiscordPresenceActivity(
                     applicationId = applicationId,
                     name = request.name,
-                    type = DiscordActivityType.fromPreference(context.pref(Prefs.ActivityTypeKey, "PLAYING")),
+                    type = DiscordActivityType.fromPreference(request.activityType ?: context.pref(Prefs.ActivityTypeKey, "PLAYING")),
                     details = request.details,
                     state = request.state,
                     assets =

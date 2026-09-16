@@ -21,7 +21,6 @@ import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -100,7 +98,7 @@ fun AppDetectionScreen(
     var query by rememberSaveable { mutableStateOf("") }
     val apps by produceState<List<InstalledApp>>(emptyList()) { value = InstalledApps.load(context) }
     val filtered =
-        remember(apps, query) {
+        remember(apps, query, overrides) {
             if (query.isBlank()) {
                 apps
             } else {
@@ -229,33 +227,14 @@ fun AppDetectionScreen(
     }
 
     renaming?.let { app ->
-        var draft by remember(app) { mutableStateOf(overrides[app.packageName].orEmpty()) }
-        AlertDialog(
-            onDismissRequest = { renaming = null },
-            title = { Text(stringResource(R.string.app_detection_rename)) },
-            text = {
-                Column {
-                    Text(app.label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = draft,
-                        onValueChange = { draft = it },
-                        singleLine = true,
-                        placeholder = { Text(app.label) },
-                        supportingText = { Text(stringResource(R.string.app_detection_rename_hint)) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    scope.launch { AppLabels.setOverride(context, app.packageName, draft) }
-                    renaming = null
-                }) { Text(stringResource(R.string.action_save)) }
-            },
-            dismissButton = { TextButton(onClick = { renaming = null }) { Text(stringResource(R.string.action_cancel)) } },
+        AppOptionsDialog(
+            app = app,
+            initialLabel = overrides[app.packageName].orEmpty(),
+            initiallyEnabled = app.packageName in watched,
+            onDismiss = { renaming = null },
         )
     }
+
 }
 
 @Composable
@@ -274,7 +253,7 @@ private fun AppRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .combinedClickable(onClick = { onCheckedChange(!checked) }, onLongClick = onLongPress)
+            .combinedClickable(onClick = { onCheckedChange(!checked) }, onLongClick = onLongPress, onLongClickLabel = stringResource(R.string.app_options))
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         if (bitmap != null) {

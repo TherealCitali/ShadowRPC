@@ -133,4 +133,10 @@
     <string name="home_account_ready">ShadowRPC is ready to publish Rich Presence for your apps and games.</string>
     <string name="rpc_enable">Enable Rich Presence</string>
     <string name="rpc_paused">Rich Presence is paused</string>
+    <string name="app_options">App options</string>
+    <string name="app_options_inherit">Use global setting</string>
+    <string name="app_options_share">Share this app</string>
+    <string name="app_options_hint">Overrides apply only to this app. Sharing still requires App Detection and Rich Presence to be enabled.</string>
+    <string name="app_options_reset">Reset overrides</string>
+    <string name="app_options_save_error">Could not save changes. Please try again.</string>
 </resources>

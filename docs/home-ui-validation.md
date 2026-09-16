@@ -46,3 +46,28 @@ Static checks: resource XML parses, added string references resolve, git diff
 - Device checks pending: toggle during an in-flight publish, restart while off,
   refresh while off, resume with an allowed foreground app, logout/login and
   usage access revoked. Confirm no presence is published while paused.
+
+## Per-app options
+
+Long-press an app row (TalkBack action: App options). The floating editor shows
+its actual launcher icon, app name and package. It supports display-name edits,
+sharing allow-list membership, activity type and all three activity sources.
+Each unset field inherits its global counterpart; CUSTOM supports the existing
+placeholders. NONE is offered only for details/state. Reset overrides clears
+name/type/content drafts but preserves the sharing selection; Save commits.
+Cancel, close and outside-tap discard drafts. Save writes all edits atomically.
+
+Pending device checks:
+- Two apps with different overrides; verify each foreground app publishes its
+  own type and text without changing global preferences or other apps.
+- Type-only edits bypass request deduplication; source/template edits are applied
+  by the existing ActivityTemplate (including duplicate collapse and limits).
+- Change a global setting: inherited per-app fields follow it, overridden fields
+  remain unchanged. Reset and save, restart, and confirm inheritance restored.
+- Share off removes only that app from the allow-list; on adds it back. Master
+  RPC-off remains respected. Save while an app is active updates on a later poll.
+- Missing/malformed JSON falls back to defaults, app icon absent, long package
+  name, large fonts, short landscape viewport and keyboard visible.
+
+Static XML/resource and whitespace checks pass. No Android build or runtime
+verification was possible in the current Java 11 / no Android SDK environment.

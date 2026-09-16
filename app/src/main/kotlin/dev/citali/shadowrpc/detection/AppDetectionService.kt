@@ -16,6 +16,7 @@ import dev.citali.shadowrpc.data.Prefs
 import dev.citali.shadowrpc.data.dataStore
 import dev.citali.shadowrpc.data.pref
 import dev.citali.shadowrpc.data.setPref
+import dev.citali.shadowrpc.presence.AppPresenceOverrides
 import dev.citali.shadowrpc.presence.ActivityContent
 import dev.citali.shadowrpc.presence.ActivityTemplate
 import dev.citali.shadowrpc.presence.PresenceManager
@@ -111,7 +112,8 @@ class AppDetectionService : LifecycleService() {
 
     private suspend fun publish(packageName: String) {
         val subject = AppLabels.subject(this, packageName)
-        val text = ActivityTemplate.resolve(ActivityContent.load(this), subject, getString(R.string.app_name))
+        val overrides = AppPresenceOverrides.load(this, packageName)
+        val text = ActivityTemplate.resolve(overrides.applyTo(ActivityContent.load(this)), subject, getString(R.string.app_name))
         val showIcon = pref(Prefs.AppDetectionShowIconKey, false)
         val timestamps = pref(Prefs.AppDetectionTimestampsKey, true)
         val icon = if (showIcon) IconHost.urlFor(this, packageName) else null
@@ -120,6 +122,7 @@ class AppDetectionService : LifecycleService() {
             this,
             PresenceRequest(
                 name = text.name,
+                activityType = overrides.type,
                 details = text.details,
                 state = text.state,
                 largeImage = icon,
