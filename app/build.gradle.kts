@@ -14,13 +14,14 @@ val localProperties =
         if (file.exists()) file.inputStream().use(::load)
     }
 
-// Discord Application ID: local.properties > env (CI secret) > placeholder.
-// The placeholder keeps the app building; Discord login needs a real ID.
+// Discord Application ID: local.properties > env (CI secret) > ShadowRPC's own application.
+// The ID is a public OAuth client identifier (it appears in every login URL), not a secret;
+// forks should still create their own application and override it.
 val discordApplicationId =
     (
         localProperties.getProperty("DISCORD_APPLICATION_ID")
             ?: System.getenv("DISCORD_APPLICATION_ID")
-    )?.trim()?.takeIf { it.all(Char::isDigit) && it.isNotEmpty() } ?: "0"
+    )?.trim()?.takeIf { it.all(Char::isDigit) && it.isNotEmpty() } ?: "1549707822390976593"
 val discordRedirectScheme = "discord-$discordApplicationId"
 
 android {

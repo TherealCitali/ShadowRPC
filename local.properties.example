@@ -5,4 +5,5 @@
 # Create a NEW application for ShadowRPC (do not reuse another app's ID).
 # Enable the Social SDK / presence for it and add this redirect URI:
 #   discord-<APPLICATION_ID>:/authorize/callback
-DISCORD_APPLICATION_ID=0
+# Leave unset to use the official ShadowRPC application.
+# DISCORD_APPLICATION_ID=1549707822390976593
