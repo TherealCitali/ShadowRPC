@@ -53,7 +53,6 @@ import androidx.navigation.compose.rememberNavController
 import dev.citali.shadowrpc.detection.AppDetectionService
 import dev.citali.shadowrpc.ui.screens.AboutScreen
 import dev.citali.shadowrpc.ui.screens.AccountScreen
-import dev.citali.shadowrpc.ui.screens.AppDetectionScreen
 import dev.citali.shadowrpc.ui.screens.DisplayScreen
 import dev.citali.shadowrpc.ui.screens.HomeScreen
 import dev.citali.shadowrpc.ui.screens.LogsScreen
@@ -175,9 +174,6 @@ private fun ShadowRpcRoot() {
                     onNavigate = ::navigate,
                     snackbarHostState = snackbarHostState,
                 )
-            }
-            composable(Routes.APP_DETECTION) {
-                AppDetectionScreen(onBack = { navController.popBackStack() }, onNeedLogin = { navigate(Routes.ACCOUNT) })
             }
             composable(Routes.ACCOUNT) { AccountScreen(onBack = { navController.popBackStack() }) }
             composable(Routes.SETTINGS) { SettingsScreen(onBack = { navController.popBackStack() }) }

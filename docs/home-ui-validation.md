@@ -71,3 +71,16 @@ Pending device checks:
 
 Static XML/resource and whitespace checks pass. No Android build or runtime
 verification was possible in the current Java 11 / no Android SDK environment.
+
+## Inline app management
+
+Home now has a single LazyColumn: account / activity settings, App Detection and
+Manage apps card, usage-access prompt (if needed), icon/timestamp controls,
+optional search field and keyed installed-app rows. The separate App Detection
+route and screen have been removed. Long-press still opens App options.
+
+Pending device checks: scroll from Welcome to the last installed app without
+nested scrolling issues; search using the button beside Manage apps; toggle
+sharing, long-press and save overrides; grant/revoke Usage access and return to
+Home; verify there is one detection switch and Back does not open another app
+management page. Compilation remains unverified in this environment.

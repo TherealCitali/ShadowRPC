@@ -5,6 +5,10 @@ import android.graphics.drawable.Drawable
 import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.PaddingValues
+import dev.citali.shadowrpc.ui.component.PreferenceCard
+import dev.citali.shadowrpc.ui.component.PreferenceEntry
+import dev.citali.shadowrpc.ui.component.PreferenceGroupTitle
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +32,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,15 +66,14 @@ import dev.citali.shadowrpc.detection.ForegroundAppDetector
 import dev.citali.shadowrpc.detection.InstalledApp
 import dev.citali.shadowrpc.detection.InstalledApps
 import dev.citali.shadowrpc.discord.DiscordOAuthRepository
-import dev.citali.shadowrpc.ui.component.MasterSwitchCard
-import dev.citali.shadowrpc.ui.component.ScreenScaffold
 import dev.citali.shadowrpc.ui.component.SwitchPreference
 import kotlinx.coroutines.launch
 
 @Composable
-fun AppDetectionScreen(
-    onBack: () -> Unit,
+fun HomeAppList(
     onNeedLogin: () -> Unit,
+    modifier: Modifier = Modifier,
+    header: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -128,101 +133,114 @@ fun AppDetectionScreen(
         }
     }
 
-    ScreenScaffold(
-        title = stringResource(R.string.feature_app_detection),
-        onBack = onBack,
-        scrollable = false,
-        actions = {
-            IconButton(onClick = { searching = !searching; if (!searching) query = "" }) {
-                Icon(if (searching) Icons.Rounded.Close else Icons.Rounded.Search, contentDescription = stringResource(R.string.app_detection_search))
-            }
-        },
-    ) {
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            item {
-                MasterSwitchCard(
-                    title = stringResource(R.string.app_detection_enable),
-                    checked = enabled,
-                    onCheckedChange = { toggleEnabled(it) },
-                    enabled = hasUsageAccess,
-                )
-                Spacer(Modifier.height(8.dp))
-            }
-
-            if (!hasUsageAccess) {
-                item {
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                    ) {
-                        Column(modifier = Modifier.padding(20.dp)) {
-                            Text(stringResource(R.string.app_detection_permission_title), style = MaterialTheme.typography.titleLarge)
-                            Spacer(Modifier.height(6.dp))
-                            Text(stringResource(R.string.app_detection_permission_body), style = MaterialTheme.typography.bodyLarge)
-                            Spacer(Modifier.height(14.dp))
-                            Button(onClick = {
-                                context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                            }) { Text(stringResource(R.string.app_detection_grant)) }
+    LazyColumn(modifier = modifier, contentPadding = PaddingValues(bottom = 32.dp)) {
+        item(key = "home_header") { Column { header() } }
+        item(key = "detection_controls") {
+            Column {
+            PreferenceGroupTitle(stringResource(R.string.feature_app_detection))
+            PreferenceCard {
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                ) {
+                    SwitchPreference(
+                        title = stringResource(R.string.app_detection_enable),
+                        checked = enabled,
+                        onCheckedChange = ::toggleEnabled,
+                        enabled = hasUsageAccess,
+                        icon = Icons.Outlined.Apps,
+                    )
+                }
+                PreferenceEntry(
+                    title = stringResource(R.string.home_manage_apps),
+                    description = stringResource(R.string.home_manage_apps_summary),
+                    trailing = {
+                        IconButton(onClick = { searching = !searching; if (!searching) query = "" }) {
+                            Icon(if (searching) Icons.Rounded.Close else Icons.Rounded.Search,
+                                contentDescription = stringResource(R.string.app_detection_search))
                         }
+                    },
+                )
+            }
+            }
+        }
+
+        if (!hasUsageAccess) {
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text(stringResource(R.string.app_detection_permission_title), style = MaterialTheme.typography.titleLarge)
+                        Spacer(Modifier.height(6.dp))
+                        Text(stringResource(R.string.app_detection_permission_body), style = MaterialTheme.typography.bodyLarge)
+                        Spacer(Modifier.height(14.dp))
+                        Button(onClick = {
+                            context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        }) { Text(stringResource(R.string.app_detection_grant)) }
                     }
                 }
             }
+        }
 
+        item(key = "icon_timestamp_options") {
+            Column {
+            SwitchPreference(
+                title = stringResource(R.string.app_detection_show_icon),
+                description = stringResource(R.string.app_detection_show_icon_summary),
+                icon = Icons.Outlined.Apps,
+                checked = showIcon,
+                onCheckedChange = setShowIcon,
+            )
+            SwitchPreference(
+                title = stringResource(R.string.app_detection_timestamps),
+                description = stringResource(R.string.app_detection_timestamps_summary),
+                icon = Icons.Outlined.Timer,
+                checked = timestamps,
+                onCheckedChange = setTimestamps,
+            )
+            }
+        }
+
+        if (searching) {
             item {
-                SwitchPreference(
-                    title = stringResource(R.string.app_detection_show_icon),
-                    description = stringResource(R.string.app_detection_show_icon_summary),
-                    icon = Icons.Outlined.Apps,
-                    checked = showIcon,
-                    onCheckedChange = setShowIcon,
-                )
-                SwitchPreference(
-                    title = stringResource(R.string.app_detection_timestamps),
-                    description = stringResource(R.string.app_detection_timestamps_summary),
-                    icon = Icons.Outlined.Timer,
-                    checked = timestamps,
-                    onCheckedChange = setTimestamps,
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    singleLine = true,
+                    placeholder = { Text(stringResource(R.string.app_detection_search)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
+        }
 
-            if (searching) {
-                item {
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        singleLine = true,
-                        placeholder = { Text(stringResource(R.string.app_detection_search)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-            }
-
-            if (filtered.isEmpty() && apps.isNotEmpty()) {
-                item {
-                    Text(
-                        stringResource(R.string.app_detection_no_apps),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(24.dp),
-                    )
-                }
-            }
-
-            items(filtered, key = { it.packageName }) { app ->
-                AppRow(
-                    app = app,
-                    displayName = overrides[app.packageName],
-                    checked = app.packageName in watched,
-                    onCheckedChange = { on ->
-                        setWatched(if (on) watched + app.packageName else watched - app.packageName)
-                    },
-                    onLongPress = { renaming = app },
+        if (filtered.isEmpty() && apps.isNotEmpty()) {
+            item {
+                Text(
+                    stringResource(R.string.app_detection_no_apps),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(24.dp),
                 )
             }
+        }
+
+        items(filtered, key = { it.packageName }) { app ->
+            AppRow(
+                app = app,
+                displayName = overrides[app.packageName],
+                checked = app.packageName in watched,
+                onCheckedChange = { on ->
+                    setWatched(if (on) watched + app.packageName else watched - app.packageName)
+                },
+                onLongPress = { renaming = app },
+            )
         }
     }
 
