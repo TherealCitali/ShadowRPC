@@ -79,6 +79,13 @@ class AppDetectionService : LifecycleService() {
                 return
             }
 
+            if (!pref(Prefs.RpcEnabledKey, true)) {
+                sharedPackage = null
+                updateNotification(getString(R.string.rpc_paused))
+                delay(POLL_INTERVAL_MS)
+                continue
+            }
+
             val watched = pref(Prefs.AppDetectionPackagesKey, emptySet())
             val foreground = ForegroundAppDetector.currentForegroundPackage(this)
             val target = foreground?.takeIf { it in watched }
@@ -120,7 +127,10 @@ class AppDetectionService : LifecycleService() {
                 startEpochSeconds = if (timestamps) sharedSinceEpochSeconds else null,
             ),
         )
-        updateNotification(getString(R.string.app_detection_notification_active, subject.appLabel))
+        updateNotification(
+            if (pref(Prefs.RpcEnabledKey, true)) getString(R.string.app_detection_notification_active, subject.appLabel)
+            else getString(R.string.rpc_paused),
+        )
     }
 
     private var lastNotificationText: String? = null

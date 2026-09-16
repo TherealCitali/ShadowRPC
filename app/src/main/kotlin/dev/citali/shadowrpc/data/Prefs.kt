@@ -28,6 +28,7 @@ object Prefs {
     val AppDetectionTimestampsKey = booleanPreferencesKey("appDetectionTimestamps")
 
     // Presence
+    val RpcEnabledKey = booleanPreferencesKey("rpcEnabled")
     val ActivityTypeKey = stringPreferencesKey("activityType") // PLAYING / LISTENING / WATCHING / COMPETING
     val ActivityStatusKey = stringPreferencesKey("activityStatus") // online / idle / dnd
     // Presence text lines, each with an ActivitySource (APP / SHADOWRPC / PACKAGE / CATEGORY / CUSTOM / NONE)

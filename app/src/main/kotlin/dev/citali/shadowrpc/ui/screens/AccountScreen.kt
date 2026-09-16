@@ -41,6 +41,7 @@ import dev.citali.shadowrpc.discord.DiscordAuthCoordinator
 import dev.citali.shadowrpc.discord.DiscordAuthorizationSession
 import dev.citali.shadowrpc.discord.DiscordOAuthRepository
 import dev.citali.shadowrpc.presence.PresenceManager
+import dev.citali.shadowrpc.ui.component.SwitchPreference
 import dev.citali.shadowrpc.ui.component.ScreenScaffold
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -56,6 +57,8 @@ fun AccountScreen(onBack: () -> Unit) {
 fun AccountContent() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val (rpcEnabled) = rememberPreference(Prefs.RpcEnabledKey, true)
+    var changingRpc by remember { mutableStateOf(false) }
     val (token) = rememberPreference(Prefs.DiscordTokenKey, "")
     val (username) = rememberPreference(Prefs.DiscordUsernameKey, "")
     val (name) = rememberPreference(Prefs.DiscordNameKey, "")
@@ -127,6 +130,7 @@ fun AccountContent() {
                         text = when {
                             !hasAppId -> stringResource(R.string.account_missing_app_id)
                             error != null -> stringResource(R.string.account_login_failed, error.orEmpty())
+                            token.isNotBlank() && !rpcEnabled -> stringResource(R.string.rpc_paused)
                             token.isNotBlank() -> stringResource(R.string.home_account_ready)
                             else -> stringResource(R.string.account_login_hint)
                         },
@@ -137,6 +141,31 @@ fun AccountContent() {
                     )
                 }
                 Spacer(Modifier.height(16.dp))
+                if (token.isNotBlank()) {
+                    Surface(
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        SwitchPreference(
+                            title = stringResource(R.string.rpc_enable),
+                            checked = rpcEnabled,
+                            enabled = !changingRpc,
+                            onCheckedChange = { wanted ->
+                                changingRpc = true
+                                scope.launch {
+                                    try {
+                                        PresenceManager.setEnabled(context, wanted)
+                                        if (wanted) AppDetectionService.startIfEnabled(context)
+                                    } finally {
+                                        changingRpc = false
+                                    }
+                                }
+                            },
+                        )
+                    }
+                    Spacer(Modifier.height(16.dp))
+                }
                 if (token.isBlank()) {
                     Button(
                         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),

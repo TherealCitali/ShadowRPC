@@ -33,3 +33,16 @@ Static checks: resource XML parses, added string references resolve, git diff
 - Check spring entrance and preview size changes with animator duration scale
   normal and disabled. Animations use Compose's duration-scale-aware primitives;
   app-wide Material components receive the expressive motion scheme.
+
+## Master RPC switch
+
+- Signed-in account card shows Enable Rich Presence above Sign out, on by
+  default to retain existing behaviour. Choice persists across app restarts.
+- Off serializes with publishing, clears presence, closes the gateway and blocks
+  future updates centrally. Detection remains configured but polling skips app
+  lookup / icon upload while paused; the notification indicates paused state.
+- On resumes on the next detection poll if detection is enabled. It does not
+  silently enable detection or change the allow-list.
+- Device checks pending: toggle during an in-flight publish, restart while off,
+  refresh while off, resume with an allowed foreground app, logout/login and
+  usage access revoked. Confirm no presence is published while paused.

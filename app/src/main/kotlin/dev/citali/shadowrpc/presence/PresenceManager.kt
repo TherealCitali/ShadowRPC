@@ -3,6 +3,7 @@ package dev.citali.shadowrpc.presence
 import android.content.Context
 import dev.citali.shadowrpc.BuildConfig
 import dev.citali.shadowrpc.data.Prefs
+import dev.citali.shadowrpc.data.setPref
 import dev.citali.shadowrpc.data.pref
 import dev.citali.shadowrpc.discord.DiscordActivityType
 import dev.citali.shadowrpc.discord.DiscordAssetRegistrar
@@ -65,6 +66,7 @@ object PresenceManager {
         request: PresenceRequest,
     ) {
         mutex.withLock {
+            if (!context.pref(Prefs.RpcEnabledKey, true)) return
             val now = System.currentTimeMillis()
             if (request == lastSent && now - lastSentAtMs < MIN_INTERVAL_MS) return
 
@@ -113,18 +115,31 @@ object PresenceManager {
         }
     }
 
-    suspend fun clear(context: Context) {
+    /** Serialize the master switch with in-flight publishes so Off always wins. */
+    suspend fun setEnabled(context: Context, enabled: Boolean) {
         mutex.withLock {
-            if (lastSent == null && _state.value is PresenceState.Idle) return
-            val token = DiscordOAuthRepository.getValidAccessToken(context)
-            DiscordSocialPresenceClient
-                .clearPresence(token)
-                .onFailure { Timber.tag(TAG).w(it, "clear presence failed") }
-            lastSent = null
-            lastSentAtMs = 0L
-            _state.value = PresenceState.Idle
-            Timber.tag(TAG).i("presence cleared")
+            context.setPref(Prefs.RpcEnabledKey, enabled)
+            if (!enabled) {
+                clearLocked(context)
+                DiscordSocialPresenceClient.close()
+            }
         }
+    }
+
+    suspend fun clear(context: Context) {
+        mutex.withLock { clearLocked(context) }
+    }
+
+    private suspend fun clearLocked(context: Context) {
+        if (lastSent == null && _state.value is PresenceState.Idle) return
+        val token = DiscordOAuthRepository.getValidAccessToken(context)
+        DiscordSocialPresenceClient
+            .clearPresence(token)
+            .onFailure { Timber.tag(TAG).w(it, "clear presence failed") }
+        lastSent = null
+        lastSentAtMs = 0L
+        _state.value = PresenceState.Idle
+        Timber.tag(TAG).i("presence cleared")
     }
 
     suspend fun shutdown(context: Context) {

@@ -131,4 +131,6 @@
     <string name="home_manage_apps">Manage apps</string>
     <string name="home_manage_apps_summary">Choose apps, grant usage access, and configure icons and timestamps</string>
     <string name="home_account_ready">ShadowRPC is ready to publish Rich Presence for your apps and games.</string>
+    <string name="rpc_enable">Enable Rich Presence</string>
+    <string name="rpc_paused">Rich Presence is paused</string>
 </resources>
