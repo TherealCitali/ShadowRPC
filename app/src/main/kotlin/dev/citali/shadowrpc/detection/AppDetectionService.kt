@@ -54,8 +54,15 @@ class AppDetectionService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         ForegroundAppDetector.reset()
-        _running.value = true
-        startForegroundCompat(buildNotification(getString(R.string.app_detection_notification_idle)))
+        try {
+            startForegroundCompat(buildNotification(getString(R.string.app_detection_notification_idle)))
+            _running.value = true
+            Timber.tag(TAG).i("Detection service started")
+        } catch (error: Exception) {
+            _running.value = false
+            Timber.tag(TAG).e(error, "Android rejected detection foreground service")
+            stopSelf()
+        }
     }
 
     override fun onStartCommand(
@@ -71,6 +78,7 @@ class AppDetectionService : LifecycleService() {
             }
             return START_NOT_STICKY
         }
+        if (!_running.value) return START_NOT_STICKY
         if (pollJob?.isActive != true) pollJob = lifecycleScope.launch { pollLoop() }
         return START_STICKY
     }
@@ -252,7 +260,11 @@ class AppDetectionService : LifecycleService() {
         val running: StateFlow<Boolean> = _running
 
         fun start(context: Context) {
-            ContextCompat.startForegroundService(context, Intent(context, AppDetectionService::class.java))
+            try {
+                ContextCompat.startForegroundService(context, Intent(context, AppDetectionService::class.java))
+            } catch (error: Exception) {
+                Timber.tag(TAG).e(error, "Android rejected detection start; open ShadowRPC and retry")
+            }
         }
 
         fun stop(context: Context) {

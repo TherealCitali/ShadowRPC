@@ -35,7 +35,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.citali.shadowrpc.R
-import dev.citali.shadowrpc.ui.component.ScreenScaffold
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.foundation.layout.fillMaxSize
 import dev.citali.shadowrpc.util.InMemoryLogTree
 
 @Composable
@@ -43,27 +46,33 @@ fun LogsScreen(onBack: () -> Unit) {
     val lines by InMemoryLogTree.lines.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val floating by FloatingLogsService.running.collectAsStateWithLifecycle()
+    val serviceError by FloatingLogsService.error.collectAsStateWithLifecycle()
     var follow by remember { mutableStateOf(true) }
     var overlayError by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    LaunchedEffect(Unit) { timber.log.Timber.tag("Logs").i("Live log viewer opened") }
     LaunchedEffect(lines.lastOrNull(), follow) {
         if (follow && lines.isNotEmpty()) listState.scrollToItem(lines.lastIndex)
     }
 
-    ScreenScaffold(
-        title = stringResource(R.string.drawer_logs),
-        onBack = onBack,
-        scrollable = false,
+    Scaffold(
+        topBar = { TopAppBar(
+        title = { Text(stringResource(R.string.drawer_logs)) },
+        navigationIcon = { IconButton(onClick = onBack) {
+            Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.action_back))
+        } },
         actions = {
             IconButton(onClick = {
                 val text = lines.joinToString("\n") { "${it.time} ${it.tag ?: "-"}: ${it.message}" }
                 context.getSystemService(ClipboardManager::class.java)?.setPrimaryClip(ClipData.newPlainText("ShadowRPC logs", text))
             }) { Icon(Icons.Outlined.ContentCopy, contentDescription = stringResource(R.string.logs_copy)) }
-            IconButton(onClick = InMemoryLogTree::clear) {
+            IconButton(onClick = { dev.citali.shadowrpc.util.CrashDiagnostics.clear(); InMemoryLogTree.clear() }) {
                 Icon(Icons.Outlined.DeleteSweep, contentDescription = stringResource(R.string.logs_clear))
             }
         },
-    ) {
+        ) },
+    ) { padding ->
+        Column(Modifier.fillMaxSize().padding(padding)) {
         SwitchPreference(
             title = stringResource(R.string.logs_follow), checked = follow,
             onCheckedChange = { follow = it },
@@ -80,19 +89,21 @@ fun LogsScreen(onBack: () -> Unit) {
                 }.onFailure { overlayError = true }
             },
         ) { Text(stringResource(if (floating) R.string.floating_logs_stop else R.string.floating_logs_start)) }
-        Text(stringResource(R.string.floating_logs_hint), style = MaterialTheme.typography.bodySmall,
+        Text(stringResource(R.string.logs_overlay_help), style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-        if (overlayError) Text(stringResource(R.string.floating_logs_error), color = MaterialTheme.colorScheme.error,
+        if (overlayError || serviceError) Text(stringResource(R.string.floating_logs_error), color = MaterialTheme.colorScheme.error,
             modifier = Modifier.padding(horizontal = 16.dp))
+        LazyColumn(state = listState, modifier = Modifier.fillMaxWidth().weight(1f)) {
         if (lines.isEmpty()) {
+            item {
             Text(
                 stringResource(R.string.logs_empty),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 32.dp),
             )
+            }
         } else {
-            LazyColumn(state = listState, modifier = Modifier.fillMaxWidth()) {
                 items(lines) { line ->
                     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                         Text(
@@ -111,4 +122,5 @@ fun LogsScreen(onBack: () -> Unit) {
             }
         }
     }
+}
 }

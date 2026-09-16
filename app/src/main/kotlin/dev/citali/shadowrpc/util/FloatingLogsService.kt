@@ -24,7 +24,11 @@ import timber.log.Timber
 
 /** Session-only overlay. No preferences, boot receiver or sticky restart. */
 class FloatingLogsService : Service() {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + CoroutineExceptionHandler { _, error ->
+        _error.value = true
+        Timber.tag("FloatingLogs").e(error, "Overlay stopped after rendering failure")
+        stopSelf()
+    })
     private var panel: LinearLayout? = null
     private lateinit var windows: WindowManager
 
@@ -36,6 +40,7 @@ class FloatingLogsService : Service() {
             return START_NOT_STICKY
         }
         if (panel != null) return START_NOT_STICKY
+        try {
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.floating_logs), NotificationManager.IMPORTANCE_LOW))
         val stop = PendingIntent.getService(this, 0, Intent(this, FloatingLogsService::class.java).setAction(STOP), PendingIntent.FLAG_IMMUTABLE)
@@ -47,11 +52,12 @@ class FloatingLogsService : Service() {
             .addAction(0, getString(R.string.floating_logs_stop), stop).build()
         if (Build.VERSION.SDK_INT >= 34) startForeground(ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         else startForeground(ID, notification)
-        try {
             showPanel()
+            _error.value = false
             _running.value = true
             Timber.tag("FloatingLogs").i("Temporary log overlay opened")
         } catch (error: Exception) {
+            _error.value = true
             Timber.tag("FloatingLogs").e(error, "Cannot display overlay")
             stopSelf()
         }
@@ -112,8 +118,8 @@ class FloatingLogsService : Service() {
         scope.launch {
             InMemoryLogTree.lines.collect { lines ->
                 val follow = !scroll.canScrollVertically(1)
-                text.text = if (lines.isEmpty()) getString(R.string.logs_empty) else lines.takeLast(80)
-                    .joinToString("\n") { "${it.time} ${it.tag.orEmpty()}: ${it.message}" }
+                text.text = if (lines.isEmpty()) getString(R.string.logs_empty) else lines.takeLast(40)
+                    .joinToString("\n") { "${it.time} ${it.tag.orEmpty()}: ${it.message.take(500)}" }
                 if (follow) scroll.post { scroll.fullScroll(View.FOCUS_DOWN) }
             }
         }
@@ -136,6 +142,8 @@ class FloatingLogsService : Service() {
         private const val STOP = "dev.citali.shadowrpc.STOP_FLOATING_LOGS"
         private val _running = MutableStateFlow(false)
         val running: StateFlow<Boolean> = _running
+        private val _error = MutableStateFlow(false)
+        val error: StateFlow<Boolean> = _error
         fun start(context: Context) {
             if (Settings.canDrawOverlays(context)) ContextCompat.startForegroundService(context, Intent(context, FloatingLogsService::class.java))
         }

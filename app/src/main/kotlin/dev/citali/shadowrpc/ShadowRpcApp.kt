@@ -12,6 +12,8 @@ class ShadowRpcApp : Application() {
         super.onCreate()
         if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
         Timber.plant(InMemoryLogTree)
+        dev.citali.shadowrpc.util.CrashDiagnostics.install(this)
+        Timber.tag("Startup").i("ShadowRPC %s started; Android %s", BuildConfig.VERSION_NAME, android.os.Build.VERSION.SDK_INT)
 
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(

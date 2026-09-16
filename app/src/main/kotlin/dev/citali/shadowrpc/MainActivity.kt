@@ -66,7 +66,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         // Resume detection if the process was killed while it was on.
-        lifecycleScope.launch(Dispatchers.IO) { AppDetectionService.startIfEnabled(this@MainActivity) }
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                AppDetectionService.startIfEnabled(this@MainActivity)
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                timber.log.Timber.tag("Startup").e(error, "Could not resume detection")
+            }
+        }
         setContent {
             ShadowRpcTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {

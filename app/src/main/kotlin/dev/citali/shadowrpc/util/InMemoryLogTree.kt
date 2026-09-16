@@ -22,7 +22,7 @@ object InMemoryLogTree : Timber.Tree() {
     val lines: StateFlow<List<LogLine>> = _lines
 
     @Synchronized
-    override fun log(
+    public override fun log(
         priority: Int,
         tag: String?,
         message: String,
@@ -34,7 +34,7 @@ object InMemoryLogTree : Timber.Tree() {
     }
 
     /** Strip common credential formats before storage, display or clipboard export. */
-    private fun redact(text: String): String = text
+    fun redact(text: String): String = text
         .replace(Regex("(?i)Bearer\\s+[^\\s\"&]+"), "Bearer [redacted]")
         .replace(Regex("(?i)((?:access_token|refresh_token|id_token|client_secret|code_verifier|authorization|token|code)[\"\\s]*[:=][\"\\s]*)[^\\s\"&,}]+"), "$1[redacted]")
         .replace(Regex("gh[pousr]_[A-Za-z0-9]+"), "[redacted]")

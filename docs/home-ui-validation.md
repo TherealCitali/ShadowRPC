@@ -126,3 +126,23 @@ apps; drag to screen edges; rotate; close and notification Stop; task removal;
 process death/reboot; Android 8/12/14+; notification permission denied; live log
 updates with detection enabled; copy/clear and disable follow to read history.
 Manifest/resource and whitespace checks passed; build/runtime remain unverified.
+
+## Logs / unexpected process exit follow-up
+
+Logs now uses a compact top bar and a weighted log viewport rather than the
+large-title scaffold that could consume the available height. A Startup and
+Logs-open message makes an idle session visible. Overlay foreground promotion
+and rendering failures are handled and surfaced; detection foreground promotion
+and start requests are guarded, and boot work is off the broadcast main thread.
+
+One redacted Java crash report (up to 24 KB) is kept in noBackupFilesDir and shown
+as PreviousCrash after relaunch. Android 11+ additionally reports the most recent
+system process exit as PreviousExit. Reports are local only; Clear logs removes
+the saved crash report. This cannot catch SIGKILL or guarantee survival against
+OEM battery management. No specific device crash cause is confirmed yet.
+
+Validation: resource/delimiter checks and git diff --check passed. Attempted
+:app:compileDebugKotlin, but Gradle cannot run under this environment's Java 11.
+Pending device tests: Logs visible at large font sizes; float permission denial,
+service promotion denial, overlay close; boot restart; intentional debug crash
+followed by relaunch/copy/clear; distinguish crash from low-memory/user exit.
