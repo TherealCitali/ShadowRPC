@@ -46,6 +46,7 @@ class FloatingLogsService : Service() {
         val stop = PendingIntent.getService(this, 0, Intent(this, FloatingLogsService::class.java).setAction(STOP), PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_shadow)
+            .setLargeIcon(android.graphics.BitmapFactory.decodeResource(resources, R.drawable.notification_artwork))
             .setContentTitle(getString(R.string.floating_logs))
             .setContentText(getString(R.string.floating_logs_temporary))
             .setOngoing(true).setSilent(true)

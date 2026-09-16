@@ -154,4 +154,5 @@
     <string name="floating_logs_hint">To view logs over other apps, allow Display over other apps, then return and tap Start again. Drag the header to move; close with × or the notification Stop action. Stops when ShadowRPC is removed from Recents; does not restart automatically. Logs may contain app names: review before sharing.</string>
     <string name="floating_logs_error">Could not open floating logs. Check overlay permission in Android settings and try again.</string>
     <string name="logs_overlay_help">Overlay needs Display over other apps permission. Grant it, return, and tap Start again. Close with ×. Review logs before sharing.</string>
+    <string name="detection_background_grace">Keeping %1$s presence — %2$d s remaining</string>
 </resources>

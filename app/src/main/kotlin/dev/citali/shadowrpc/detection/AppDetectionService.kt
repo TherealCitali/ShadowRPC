@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.SystemClock
+import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
@@ -50,6 +52,8 @@ class AppDetectionService : LifecycleService() {
     private var lastDetected: String? = null
     private var sharedPackage: String? = null
     private var sharedSinceEpochSeconds: Long = 0L
+    private var backgroundSinceElapsed: Long? = null
+    private val notificationArtwork by lazy { BitmapFactory.decodeResource(resources, R.drawable.notification_artwork) }
 
     override fun onCreate() {
         super.onCreate()
@@ -100,6 +104,7 @@ class AppDetectionService : LifecycleService() {
 
                 if (!pref(Prefs.RpcEnabledKey, true)) {
                     sharedPackage = null
+                    backgroundSinceElapsed = null
                     updateNotification(getString(R.string.rpc_paused))
                     delay(POLL_INTERVAL_MS)
                     continue
@@ -115,6 +120,24 @@ class AppDetectionService : LifecycleService() {
 
                 when {
                     target == null -> {
+                        val previous = sharedPackage
+                        if (previous != null && previous in watched) {
+                            val now = SystemClock.elapsedRealtime()
+                            val since = backgroundSinceElapsed ?: now.also {
+                                backgroundSinceElapsed = it
+                                Timber.tag(TAG).i("Background grace started for %s (150 seconds)", previous)
+                            }
+                            val remaining = BACKGROUND_GRACE_MS - (now - since)
+                            if (remaining > 0L) {
+                                updateNotification(getString(R.string.detection_background_grace,
+                                    InstalledApps.label(this, previous), (remaining + 999L) / 1000L))
+                                delay(POLL_INTERVAL_MS)
+                                continue
+                            }
+                            Timber.tag(TAG).i("Background grace expired for %s", previous)
+                        }
+                        // Unselecting an app bypasses the grace period.
+                        backgroundSinceElapsed = null
                         if (sharedPackage != null) PresenceManager.clear(this)
                         sharedPackage = null
                         updateNotification(
@@ -125,6 +148,7 @@ class AppDetectionService : LifecycleService() {
                     }
 
                     target != null -> {
+                        backgroundSinceElapsed = null
                         if (target != sharedPackage) {
                             sharedPackage = target
                             sharedSinceEpochSeconds = System.currentTimeMillis() / 1000L
@@ -215,6 +239,7 @@ class AppDetectionService : LifecycleService() {
         return NotificationCompat
             .Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_shadow)
+            .setLargeIcon(notificationArtwork)
             .setContentTitle(getString(R.string.feature_app_detection))
             .setContentText(text)
             .setContentIntent(open)
@@ -254,6 +279,7 @@ class AppDetectionService : LifecycleService() {
         private const val NOTIFICATION_ID = 1001
         private const val ACTION_STOP = "dev.citali.shadowrpc.action.STOP_APP_DETECTION"
         private const val POLL_INTERVAL_MS = 3_000L
+        private const val BACKGROUND_GRACE_MS = 150_000L
         private const val TAG = "AppDetectionService"
 
         private val _running = MutableStateFlow(false)

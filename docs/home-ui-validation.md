@@ -146,3 +146,24 @@ Validation: resource/delimiter checks and git diff --check passed. Attempted
 Pending device tests: Logs visible at large font sizes; float permission denial,
 service promotion denial, overlay close; boot restart; intentional debug crash
 followed by relaunch/copy/clear; distinguish crash from low-memory/user exit.
+
+## Background presence grace and notification artwork
+
+Leaving a selected app retains the existing presence for 150 seconds (cleared on
+the next 3-second poll after expiry). The deadline uses elapsedRealtime so wall
+clock changes do not stretch it. Repeated background polls do not reset it.
+Returning to the same app cancels the deadline and preserves its original elapsed
+timestamp. Another selected app replaces it immediately. Removing the previous
+app from the allow-list clears it on the next poll; RPC Off, detection Stop and
+logout keep their existing clear/shutdown paths. Grace is not persisted across
+service/process restarts. Screen-off is treated as background for this grace.
+
+Notification glyph is derived from the user-provided character/orb artwork as a
+white alpha-only image at five Android densities; dark background removed. Full
+artwork is separately supplied as the large icon for detection and floating logs.
+Android controls large-icon placement and status-bar tint.
+
+Static resource references and alpha extrema checked. Device checks pending:
+background at 119/150/180 seconds; same-app return at 100 seconds; switch to a
+second selected app; unselect/RPC Off during grace; screen lock; light/dark
+notification visibility. Build and runtime behaviour remain unverified here.
