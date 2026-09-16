@@ -4,7 +4,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.Notes
+import androidx.compose.material.icons.outlined.ShortText
+import androidx.compose.material3.MaterialTheme
+import dev.citali.shadowrpc.data.rememberEnumPreference
+import dev.citali.shadowrpc.presence.ActivityContent
+import dev.citali.shadowrpc.presence.ActivitySource
+import dev.citali.shadowrpc.presence.ActivitySubject
+import dev.citali.shadowrpc.presence.ActivityTemplate
+import dev.citali.shadowrpc.ui.component.PresencePreview
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DoNotDisturbOn
@@ -45,12 +56,6 @@ private val activityTypes =
         "COMPETING" to R.string.activity_type_competing,
     )
 
-private val activityNameModes =
-    listOf(
-        "APP" to R.string.activity_name_app,
-        "SHADOWRPC" to R.string.activity_name_shadowrpc,
-    )
-
 private val activityStatuses =
     listOf(
         "online" to R.string.activity_status_online,
@@ -64,13 +69,36 @@ fun SettingsScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val (activityType, setActivityType) = rememberPreference(Prefs.ActivityTypeKey, "PLAYING")
     val (activityStatus, setActivityStatus) = rememberPreference(Prefs.ActivityStatusKey, "online")
-    val (nameMode, setNameMode) = rememberPreference(Prefs.ActivityNameModeKey, "APP")
     val (customAppId, setCustomAppId) = rememberPreference(Prefs.CustomApplicationIdKey, "")
     val (lowRes, setLowRes) = rememberPreference(Prefs.LowResolutionImagesKey, false)
+    val (timestamps) = rememberPreference(Prefs.AppDetectionTimestampsKey, true)
+
+    val (nameSource, setNameSource) = rememberEnumPreference(Prefs.ActivityNameSourceKey, ActivitySource.APP)
+    val (detailsSource, setDetailsSource) = rememberEnumPreference(Prefs.ActivityDetailsSourceKey, ActivitySource.APP)
+    val (stateSource, setStateSource) = rememberEnumPreference(Prefs.ActivityStateSourceKey, ActivitySource.NONE)
+    val (nameCustom, setNameCustom) = rememberPreference(Prefs.ActivityNameCustomKey, "")
+    val (detailsCustom, setDetailsCustom) = rememberPreference(Prefs.ActivityDetailsCustomKey, "")
+    val (stateCustom, setStateCustom) = rememberPreference(Prefs.ActivityStateCustomKey, "")
+    var editingLine by remember { mutableStateOf<ActivityLine?>(null) }
+
+    val appName = stringResource(R.string.app_name)
+    val sampleSubject =
+        ActivitySubject(
+            appLabel = stringResource(R.string.settings_preview_sample_app),
+            packageName = "com.example.game",
+            category = stringResource(R.string.settings_preview_sample_category),
+        )
+    val preview =
+        remember(nameSource, detailsSource, stateSource, nameCustom, detailsCustom, stateCustom) {
+            ActivityTemplate.resolve(
+                ActivityContent(nameSource, detailsSource, stateSource, nameCustom, detailsCustom, stateCustom),
+                sampleSubject,
+                appName,
+            )
+        }
 
     var typeDialog by remember { mutableStateOf(false) }
     var statusDialog by remember { mutableStateOf(false) }
-    var nameDialog by remember { mutableStateOf(false) }
     var appIdDialog by remember { mutableStateOf(false) }
 
     ScreenScaffold(title = stringResource(R.string.drawer_settings), onBack = onBack) {
@@ -80,12 +108,6 @@ fun SettingsScreen(onBack: () -> Unit) {
             description = stringResource(activityTypes.first { it.first == activityType }.second),
             icon = Icons.Outlined.Code,
             onClick = { typeDialog = true },
-        )
-        PreferenceEntry(
-            title = stringResource(R.string.settings_activity_name),
-            description = stringResource(activityNameModes.first { it.first == nameMode }.second),
-            icon = Icons.Outlined.Badge,
-            onClick = { nameDialog = true },
         )
         PreferenceEntry(
             title = stringResource(R.string.settings_activity_status),
@@ -98,6 +120,40 @@ fun SettingsScreen(onBack: () -> Unit) {
             description = customAppId.ifBlank { stringResource(R.string.settings_application_id_summary) },
             icon = Icons.Outlined.Pin,
             onClick = { appIdDialog = true },
+        )
+
+        PreferenceGroupTitle(stringResource(R.string.settings_activity_content))
+        PresencePreview(
+            activityTypeLabel = stringResource(activityTypes.first { it.first == activityType }.second),
+            name = preview.name,
+            details = preview.details,
+            state = preview.state,
+            showTimestamp = timestamps,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+        )
+        Text(
+            text = stringResource(R.string.settings_activity_content_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+        )
+        PreferenceEntry(
+            title = stringResource(R.string.settings_activity_name),
+            description = sourceLabel(nameSource, nameCustom),
+            icon = Icons.Outlined.Badge,
+            onClick = { editingLine = ActivityLine.NAME },
+        )
+        PreferenceEntry(
+            title = stringResource(R.string.settings_activity_details),
+            description = sourceLabel(detailsSource, detailsCustom),
+            icon = Icons.Outlined.Notes,
+            onClick = { editingLine = ActivityLine.DETAILS },
+        )
+        PreferenceEntry(
+            title = stringResource(R.string.settings_activity_state),
+            description = sourceLabel(stateSource, stateCustom),
+            icon = Icons.Outlined.ShortText,
+            onClick = { editingLine = ActivityLine.STATE },
         )
 
         PreferenceGroupTitle(stringResource(R.string.settings_advanced))
@@ -125,15 +181,6 @@ fun SettingsScreen(onBack: () -> Unit) {
             onDismiss = { typeDialog = false },
         )
     }
-    if (nameDialog) {
-        ChoiceDialog(
-            title = stringResource(R.string.settings_activity_name),
-            options = activityNameModes.map { it.first to stringResource(it.second) },
-            selected = nameMode,
-            onSelect = { setNameMode(it); nameDialog = false },
-            onDismiss = { nameDialog = false },
-        )
-    }
     if (statusDialog) {
         ChoiceDialog(
             title = stringResource(R.string.settings_activity_status),
@@ -141,6 +188,38 @@ fun SettingsScreen(onBack: () -> Unit) {
             selected = activityStatus,
             onSelect = { setActivityStatus(it); statusDialog = false },
             onDismiss = { statusDialog = false },
+        )
+    }
+    editingLine?.let { line ->
+        val (source, template) =
+            when (line) {
+                ActivityLine.NAME -> nameSource to nameCustom
+                ActivityLine.DETAILS -> detailsSource to detailsCustom
+                ActivityLine.STATE -> stateSource to stateCustom
+            }
+        ActivityLineDialog(
+            title =
+                stringResource(
+                    when (line) {
+                        ActivityLine.NAME -> R.string.settings_activity_name
+                        ActivityLine.DETAILS -> R.string.settings_activity_details
+                        ActivityLine.STATE -> R.string.settings_activity_state
+                    },
+                ),
+            allowNone = line != ActivityLine.NAME,
+            source = source,
+            template = template,
+            sampleSubject = sampleSubject,
+            appName = appName,
+            onDismiss = { editingLine = null },
+            onSave = { newSource, newTemplate ->
+                when (line) {
+                    ActivityLine.NAME -> { setNameSource(newSource); setNameCustom(newTemplate) }
+                    ActivityLine.DETAILS -> { setDetailsSource(newSource); setDetailsCustom(newTemplate) }
+                    ActivityLine.STATE -> { setStateSource(newSource); setStateCustom(newTemplate) }
+                }
+                editingLine = null
+            },
         )
     }
     if (appIdDialog) {
@@ -189,5 +268,79 @@ private fun ChoiceDialog(
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
         modifier = Modifier.padding(0.dp),
+    )
+}
+
+private enum class ActivityLine { NAME, DETAILS, STATE }
+
+@Composable
+private fun sourceLabel(
+    source: ActivitySource,
+    template: String,
+): String =
+    when (source) {
+        ActivitySource.APP -> stringResource(R.string.activity_source_app)
+        ActivitySource.SHADOWRPC -> stringResource(R.string.app_name)
+        ActivitySource.PACKAGE -> stringResource(R.string.activity_source_package)
+        ActivitySource.CATEGORY -> stringResource(R.string.activity_source_category)
+        ActivitySource.CUSTOM -> template.ifBlank { stringResource(R.string.activity_source_custom) }
+        ActivitySource.NONE -> stringResource(R.string.activity_source_none)
+    }
+
+@Composable
+private fun ActivityLineDialog(
+    title: String,
+    allowNone: Boolean,
+    source: ActivitySource,
+    template: String,
+    sampleSubject: ActivitySubject,
+    appName: String,
+    onDismiss: () -> Unit,
+    onSave: (ActivitySource, String) -> Unit,
+) {
+    var draftSource by remember { mutableStateOf(source) }
+    var draftTemplate by remember { mutableStateOf(template) }
+    val options = ActivitySource.entries.filter { allowNone || it != ActivitySource.NONE }
+    val livePreview =
+        ActivityTemplate.render(draftSource, draftTemplate, sampleSubject, appName)
+            ?: stringResource(R.string.activity_source_none)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                options.forEach { option ->
+                    PreferenceEntry(
+                        title = sourceLabel(option, ""),
+                        onClick = { draftSource = option },
+                        trailing = { RadioButton(selected = option == draftSource, onClick = { draftSource = option }) },
+                    )
+                }
+                if (draftSource == ActivitySource.CUSTOM) {
+                    OutlinedTextField(
+                        value = draftTemplate,
+                        onValueChange = { draftTemplate = it },
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.activity_source_custom)) },
+                        placeholder = { Text(stringResource(R.string.activity_custom_placeholder)) },
+                        supportingText = { Text(stringResource(R.string.activity_custom_help)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.settings_preview_line, livePreview),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 16.dp, start = 4.dp),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(draftSource, draftTemplate.trim()) }) { Text(stringResource(R.string.action_save)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

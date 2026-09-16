@@ -30,7 +30,14 @@ object Prefs {
     // Presence
     val ActivityTypeKey = stringPreferencesKey("activityType") // PLAYING / LISTENING / WATCHING / COMPETING
     val ActivityStatusKey = stringPreferencesKey("activityStatus") // online / idle / dnd
-    val ActivityNameModeKey = stringPreferencesKey("activityNameMode") // APP (detected app) / SHADOWRPC
+    // Presence text lines, each with an ActivitySource (APP / SHADOWRPC / PACKAGE / CATEGORY / CUSTOM / NONE)
+    val ActivityNameSourceKey = stringPreferencesKey("activityNameSource")
+    val ActivityDetailsSourceKey = stringPreferencesKey("activityDetailsSource")
+    val ActivityStateSourceKey = stringPreferencesKey("activityStateSource")
+    val ActivityNameCustomKey = stringPreferencesKey("activityNameCustom") // templates for CUSTOM
+    val ActivityDetailsCustomKey = stringPreferencesKey("activityDetailsCustom")
+    val ActivityStateCustomKey = stringPreferencesKey("activityStateCustom")
+    val AppLabelOverridesKey = stringPreferencesKey("appLabelOverrides") // JSON object: package -> display name
     val CustomApplicationIdKey = stringPreferencesKey("customApplicationId")
     val LowResolutionImagesKey = booleanPreferencesKey("lowResolutionImages")
 

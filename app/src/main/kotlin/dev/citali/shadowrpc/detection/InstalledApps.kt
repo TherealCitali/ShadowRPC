@@ -52,6 +52,23 @@ object InstalledApps {
         packageName: String,
     ): Drawable? = runCatching { context.packageManager.getApplicationIcon(packageName) }.getOrNull()
 
+    /** Localised Play Store category ("Game", "Social", ...) or null when the app declares none. */
+    @Suppress("DEPRECATION")
+    fun categoryTitle(
+        context: Context,
+        packageName: String,
+    ): String? =
+        runCatching {
+            val info = context.packageManager.getApplicationInfo(packageName, 0)
+            val category =
+                if (info.category == ApplicationInfo.CATEGORY_UNDEFINED && info.flags and ApplicationInfo.FLAG_IS_GAME != 0) {
+                    ApplicationInfo.CATEGORY_GAME
+                } else {
+                    info.category
+                }
+            ApplicationInfo.getCategoryTitle(context, category)?.toString()
+        }.getOrNull()
+
     /** PNG bytes of the launcher icon, square, sized for Discord's large image. */
     fun iconPng(
         context: Context,

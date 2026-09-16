@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.provider.Settings
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -54,6 +57,7 @@ import dev.citali.shadowrpc.R
 import dev.citali.shadowrpc.data.Prefs
 import dev.citali.shadowrpc.data.rememberPreference
 import dev.citali.shadowrpc.detection.AppDetectionService
+import dev.citali.shadowrpc.detection.AppLabels
 import dev.citali.shadowrpc.detection.ForegroundAppDetector
 import dev.citali.shadowrpc.detection.InstalledApp
 import dev.citali.shadowrpc.detection.InstalledApps
@@ -88,12 +92,24 @@ fun AppDetectionScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    val (overridesJson) = rememberPreference(Prefs.AppLabelOverridesKey, "")
+    val overrides = remember(overridesJson) { AppLabels.parse(overridesJson) }
+    var renaming by remember { mutableStateOf<InstalledApp?>(null) }
+
     var searching by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
     val apps by produceState<List<InstalledApp>>(emptyList()) { value = InstalledApps.load(context) }
     val filtered =
         remember(apps, query) {
-            if (query.isBlank()) apps else apps.filter { it.label.contains(query, true) || it.packageName.contains(query, true) }
+            if (query.isBlank()) {
+                apps
+            } else {
+                apps.filter {
+                    it.label.contains(query, true) ||
+                        it.packageName.contains(query, true) ||
+                        overrides[it.packageName]?.contains(query, true) == true
+                }
+            }
         }
 
     fun toggleEnabled(wanted: Boolean) {
@@ -201,21 +217,54 @@ fun AppDetectionScreen(
             items(filtered, key = { it.packageName }) { app ->
                 AppRow(
                     app = app,
+                    displayName = overrides[app.packageName],
                     checked = app.packageName in watched,
                     onCheckedChange = { on ->
                         setWatched(if (on) watched + app.packageName else watched - app.packageName)
                     },
+                    onLongPress = { renaming = app },
                 )
             }
         }
+    }
+
+    renaming?.let { app ->
+        var draft by remember(app) { mutableStateOf(overrides[app.packageName].orEmpty()) }
+        AlertDialog(
+            onDismissRequest = { renaming = null },
+            title = { Text(stringResource(R.string.app_detection_rename)) },
+            text = {
+                Column {
+                    Text(app.label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = draft,
+                        onValueChange = { draft = it },
+                        singleLine = true,
+                        placeholder = { Text(app.label) },
+                        supportingText = { Text(stringResource(R.string.app_detection_rename_hint)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    scope.launch { AppLabels.setOverride(context, app.packageName, draft) }
+                    renaming = null
+                }) { Text(stringResource(R.string.action_save)) }
+            },
+            dismissButton = { TextButton(onClick = { renaming = null }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
 }
 
 @Composable
 private fun AppRow(
     app: InstalledApp,
+    displayName: String?,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
+    onLongPress: () -> Unit,
 ) {
     val context = LocalContext.current
     val icon: Drawable? = remember(app.packageName) { InstalledApps.icon(context, app.packageName) }
@@ -225,6 +274,7 @@ private fun AppRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
+            .combinedClickable(onClick = { onCheckedChange(!checked) }, onLongClick = onLongPress)
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         if (bitmap != null) {
@@ -236,8 +286,12 @@ private fun AppRow(
         }
         Spacer(Modifier.width(18.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(app.label, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Normal)
-            Text(app.packageName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(displayName ?: app.label, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Normal)
+            Text(
+                if (displayName != null) "${app.label} · ${app.packageName}" else app.packageName,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
         Spacer(Modifier.width(12.dp))
         Switch(checked = checked, onCheckedChange = onCheckedChange)

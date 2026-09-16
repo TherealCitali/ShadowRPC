@@ -16,6 +16,8 @@ import dev.citali.shadowrpc.data.Prefs
 import dev.citali.shadowrpc.data.dataStore
 import dev.citali.shadowrpc.data.pref
 import dev.citali.shadowrpc.data.setPref
+import dev.citali.shadowrpc.presence.ActivityContent
+import dev.citali.shadowrpc.presence.ActivityTemplate
 import dev.citali.shadowrpc.presence.PresenceManager
 import dev.citali.shadowrpc.presence.PresenceRequest
 import kotlinx.coroutines.GlobalScope
@@ -101,26 +103,31 @@ class AppDetectionService : LifecycleService() {
     }
 
     private suspend fun publish(packageName: String) {
-        val label = InstalledApps.label(this, packageName)
+        val subject = AppLabels.subject(this, packageName)
+        val text = ActivityTemplate.resolve(ActivityContent.load(this), subject, getString(R.string.app_name))
         val showIcon = pref(Prefs.AppDetectionShowIconKey, false)
         val timestamps = pref(Prefs.AppDetectionTimestampsKey, true)
         val icon = if (showIcon) IconHost.urlFor(this, packageName) else null
-        val nameMode = pref(Prefs.ActivityNameModeKey, "APP")
 
         PresenceManager.update(
             this,
             PresenceRequest(
-                name = if (nameMode == "SHADOWRPC") getString(R.string.app_name) else label,
-                details = label,
+                name = text.name,
+                details = text.details,
+                state = text.state,
                 largeImage = icon,
-                largeText = label,
+                largeText = subject.appLabel,
                 startEpochSeconds = if (timestamps) sharedSinceEpochSeconds else null,
             ),
         )
-        updateNotification(getString(R.string.app_detection_notification_active, label))
+        updateNotification(getString(R.string.app_detection_notification_active, subject.appLabel))
     }
 
+    private var lastNotificationText: String? = null
+
     private fun updateNotification(text: String) {
+        if (text == lastNotificationText) return
+        lastNotificationText = text
         getSystemService(android.app.NotificationManager::class.java)
             .notify(NOTIFICATION_ID, buildNotification(text))
     }
