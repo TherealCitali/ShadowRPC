@@ -16,6 +16,9 @@ import timber.log.Timber
 object DiscordSocialPresenceClient {
     private const val TAG = "DiscordSocialPresenceClient"
     private const val MAX_SEND_ATTEMPTS = 2
+    // Only identity changes need a clear; regular time/artwork updates stay seamless.
+    private data class ActivityIdentity(val applicationId: Long, val name: String?, val type: Int)
+    private var lastIdentity: ActivityIdentity? = null
 
     private val mutex = Mutex()
     private val callbackScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -53,6 +56,7 @@ object DiscordSocialPresenceClient {
                 }
 
                 val presenceJson = buildPresencePayload(token, activity)
+                val identity = ActivityIdentity(activity.applicationId, activity.name, activity.type.nativeValue)
                 var lastError: Throwable? = null
 
                 repeat(MAX_SEND_ATTEMPTS) { attempt ->
@@ -60,6 +64,21 @@ object DiscordSocialPresenceClient {
                     if (connectResult.isFailure) return@withLock connectResult
 
                     val currentGateway = gateway
+                    if (lastIdentity != null && lastIdentity != identity && currentGateway != null && currentGateway.isReady()) {
+                        val empty = JSONObject().apply {
+                            put("activities", JSONArray())
+                            put("afk", false)
+                            put("since", JSONObject.NULL)
+                            put("status", presenceJson.optString("status", "online"))
+                        }
+                        if (!currentGateway.sendPresenceUpdate(empty)) {
+                            lastError = Exception("Failed to clear old activity before identity change")
+                            tearDownLocked("identity_clear_failed")
+                            return@repeat
+                        }
+                        lastIdentity = null
+                        Timber.tag(TAG).i("Cleared previous activity before name/type change")
+                    }
                     val sent =
                         if (currentGateway != null && currentGateway.isReady()) {
                             currentGateway.sendPresenceUpdate(presenceJson)
@@ -68,6 +87,10 @@ object DiscordSocialPresenceClient {
                         }
 
                     if (sent) {
+                        lastIdentity = identity
+                        Timber.tag(TAG).i("Presence queued (not server acknowledgement): appId=%d name=%s type=%d largeImage=%s",
+                            activity.applicationId, activity.name, activity.type.nativeValue,
+                            presenceJson.getJSONArray("activities").getJSONObject(0).optJSONObject("assets")?.has("large_image") == true)
                         if (attempt > 0) {
                             Timber.tag(TAG).i("updatePresence: sent after reconnect attempt=%d", attempt)
                         }
@@ -114,7 +137,10 @@ object DiscordSocialPresenceClient {
                             false
                         }
 
-                    if (sent) return@withLock Result.success(Unit)
+                    if (sent) {
+                        lastIdentity = null
+                        return@withLock Result.success(Unit)
+                    }
 
                     lastError = Exception("Failed to clear presence (attempt=$attempt)")
                     Timber.tag(TAG).w("clearPresence: send failed, reconnecting attempt=%d", attempt)
@@ -182,6 +208,15 @@ object DiscordSocialPresenceClient {
     }
 
     private fun attachCallbacks(newGateway: GatewayClient) {
+        newGateway.onOwnPresence = { activities ->
+            for (index in 0 until activities.length()) {
+                val observed = activities.optJSONObject(index) ?: continue
+                if (observed.optString("application_id") == DiscordAssetRegistrar.applicationId) {
+                    Timber.tag(TAG).i("Server self-presence observed: name=%s type=%d",
+                        observed.optString("name"), observed.optInt("type", -1))
+                }
+            }
+        }
         newGateway.onClose = { info ->
             Timber.tag(TAG).w(
                 "gateway closed code=%d reason=%s resumable=%s",
@@ -245,6 +280,7 @@ object DiscordSocialPresenceClient {
         }
         gateway = null
         activeToken = null
+        lastIdentity = null
     }
 
     private suspend fun buildPresencePayload(
@@ -262,7 +298,8 @@ object DiscordSocialPresenceClient {
 
         activityJson.put("name", activity.name ?: "ShadowRPC")
         activityJson.put("type", activity.type.nativeValue)
-        activityJson.put("status_display_type", activity.statusDisplayType.nativeValue)
+        // Match LunarTune's gateway payload: default name display, no optional
+        // status-display override. This does not control Discord's card layout.
 
         activity.details?.let { activityJson.put("details", it) }
         activity.state?.let { activityJson.put("state", it) }

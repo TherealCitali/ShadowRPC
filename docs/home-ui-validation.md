@@ -214,3 +214,25 @@ permission revoke/regrant, service restart and large-font fixed footer.
 
 Static delimiter and whitespace checks passed. Compilation and device execution
 remain unverified in this Java 11/no Android SDK editing environment.
+
+## Activity-name compatibility attempt
+
+Removed the optional status_display_type wire field to match LunarTune's gateway
+payload (it is not a profile-heading control). On an established connection,
+changing app ID/name/type now sends an empty activity list before the replacement.
+Normal artwork/text/timestamp refreshes do not clear. Failed clear triggers the
+existing bounded reconnect loop; no application-ID spoofing or auth changes.
+
+Diagnostic logs distinguish "Presence queued (not server acknowledgement)" from
+"Server self-presence observed". The latter is emitted only if the existing
+session receives a self PRESENCE_UPDATE matching the current application ID;
+no extra permissions/subscriptions and no other-user presence logging. Such an
+event is not guaranteed for OAuth sessions; absence proves nothing.
+
+User test: disable other RPC publishers temporarily; save per-app Playing,
+Detected app name, None details/state, no display-name override; keep global
+Application ID override blank. Open selected app, then check Discord and copy the
+Saved/Publishing/Presence queued lines. Repeat with Listening. Compare with a
+second Discord client. Android's card layout may differ from member-list status.
+This is a compatibility attempt, not a confirmed rendering fix; device testing
+and Android compilation remain pending.

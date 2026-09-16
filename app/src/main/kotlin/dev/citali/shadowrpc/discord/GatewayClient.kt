@@ -60,6 +60,8 @@ class GatewayClient {
     var onClose: ((GatewayCloseInfo) -> Unit)? = null
     var onError: ((Throwable) -> Unit)? = null
     var onDebug: ((String) -> Unit)? = null
+    var onOwnPresence: ((JSONArray) -> Unit)? = null
+    private var ownUserId: String? = null
 
     val latency: Int get() = ping
 
@@ -327,12 +329,23 @@ class GatewayClient {
             "READY" -> {
                 val obj = d as JSONObject
                 val re = GatewayReadyEvent.fromJson(obj)
+                ownUserId = obj.optJSONObject("user")?.optString("id")
                 debug("READY: user=${re.user.username} (${re.user.id}) session=${re.sessionId}")
                 sessionState = GatewaySessionState(re.sessionId, liveSeq, re.resumeGatewayUrl)
                 touchSession(re.sessionId, liveSeq, re.resumeGatewayUrl)
                 readyReceived = true
                 ready.complete(Unit)
                 onReady?.invoke(re)
+            }
+
+            "PRESENCE_UPDATE" -> {
+                val obj = d as? JSONObject
+                val id = obj?.optJSONObject("user")?.optString("id")
+                // OAuth sessions may not receive self-presence events. Never inspect
+                // another user's activity or treat absence as an acknowledgement.
+                if (!ownUserId.isNullOrBlank() && id == ownUserId) {
+                    obj?.optJSONArray("activities")?.let { onOwnPresence?.invoke(it) }
+                }
             }
 
             "RESUMED" -> {
