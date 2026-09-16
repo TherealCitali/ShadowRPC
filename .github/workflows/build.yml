@@ -1,12 +1,9 @@
-name: Build APK
+name: Build APK and prerelease
 
 on:
   workflow_dispatch:
   push:
     branches: [ 'main', 'dev' ]
-    paths-ignore:
-      - '**.md'
-      - 'assets/**'
   pull_request:
     branches: [ 'main', 'dev' ]
 
@@ -89,3 +86,59 @@ jobs:
         with:
           name: ShadowRPC-debug
           path: app/build/outputs/apk/debug/*.apk
+
+  prerelease:
+    name: Publish commit prerelease
+    needs: build
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # Reruns update the same commit release; different commits do not cancel each other.
+    concurrency:
+      group: prerelease-${{ github.sha }}
+      cancel-in-progress: false
+    steps:
+      - name: Download built APK
+        uses: actions/download-artifact@v4
+        with:
+          name: ShadowRPC-release
+          path: apk
+
+      - name: Prepare installable APK and checksum
+        id: metadata
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f apk/ShadowRPC-release.apk ]; then
+            echo "::error::A signed APK is required for prereleases. Configure KEYSTORE, KEY_ALIAS, KEYSTORE_PASSWORD and KEY_PASSWORD in repository secrets. The unsigned build remains available as an Actions artifact."
+            exit 1
+          fi
+          SHORT_SHA="${COMMIT_SHA:0:12}"
+          mkdir -p prerelease_apk
+          cp apk/ShadowRPC-release.apk "prerelease_apk/ShadowRPC-${SHORT_SHA}.apk"
+          (cd prerelease_apk && sha256sum "ShadowRPC-${SHORT_SHA}.apk" > "ShadowRPC-${SHORT_SHA}.apk.sha256")
+          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Publish prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: prerelease-${{ github.sha }}
+          target_commitish: ${{ github.sha }}
+          name: ShadowRPC • ${{ github.ref_name }} • ${{ steps.metadata.outputs.short_sha }}
+          prerelease: true
+          make_latest: false
+          fail_on_unmatched_files: true
+          body: |
+            Automated test build from `${{ github.ref_name }}`.
+
+            **Commit:** ${{ github.sha }}
+            **Build:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Download the attached `.apk` to install. This is an experimental prerelease, not a stable release.
+            The `.sha256` file contains its checksum. The APK uses the repository signing key.
+          files: |
+            prerelease_apk/*.apk
+            prerelease_apk/*.sha256

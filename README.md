@@ -67,3 +67,19 @@ and can be revoked anytime; ShadowRPC stops itself when it is.
 ## License
 
 GPL-3.0 — see [LICENSE](LICENSE).
+
+
+### Automatic test builds
+
+Every push to `main` or `dev` (including documentation-only changes) runs the APK
+build. After a successful signed build, **[Releases](https://github.com/TherealCitali/ShadowRPC/releases)**
+gets a prerelease named with the branch and commit, with a directly downloadable
+APK and SHA-256 checksum. Rerunning a workflow updates the same commit release;
+prereleases do not replace the latest stable release. Pull requests never publish.
+A push containing multiple commits builds the pushed branch tip, not each intermediate commit.
+
+The repository must have `KEYSTORE`, `KEY_ALIAS`, `KEYSTORE_PASSWORD` and
+`KEY_PASSWORD` configured for signing. Without signing, the unsigned Actions
+artifact is retained but prerelease publication fails with an explicit message
+rather than distributing a non-installable APK. The version-based stable release
+workflow remains separate.
