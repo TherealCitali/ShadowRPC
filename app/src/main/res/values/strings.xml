@@ -111,7 +111,7 @@
     <string name="about_license">Licence</string>
     <string name="about_license_summary">GNU General Public License v3.0</string>
     <string name="about_credits">Credits</string>
-    <string name="about_credits_summary">Discord gateway and OAuth code originates from LunarTune (GPL-3.0). The ShadowRPC icon artwork was supplied by TherealCitali, with LunarTune’s icon used as a design reference. See source files and repository history for attribution. Montserrat font by The Montserrat Project Authors (SIL Open Font License 1.1).</string>
+    <string name="about_credits_summary">Discord gateway and OAuth code originates from LunarTune (GPL-3.0). ShadowRPC icon artwork by TherealCitali. See source files and repository history for attribution. Montserrat font by The Montserrat Project Authors (SIL Open Font License 1.1).</string>
 
     <!-- Activity types -->
     <string name="activity_type_playing">Playing</string>

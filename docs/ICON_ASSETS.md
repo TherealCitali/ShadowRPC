@@ -2,12 +2,12 @@
 
 ## Artwork and attribution
 
-The artwork was supplied by TherealCitali. LunarTune’s icon was used as a design reference, as stated by the contributor. This attribution does not imply LunarTune endorsement or independently establish the provenance/licensing of any third-party elements within the supplied artwork.
+ShadowRPC icon artwork by TherealCitali.
 
 Original PNGs, kept byte-for-byte unchanged:
 
-- `Assets/ShadowRPC-Icon.png`: rounded composition with alpha.
-- `Assets/ShadowRPC-Icon-Square.png`: square composition.
+- `assets/ShadowRPC-Icon.png`: rounded composition with alpha.
+- `assets/ShadowRPC-Icon-Square.png`: square composition.
 
 ## Android assets
 
