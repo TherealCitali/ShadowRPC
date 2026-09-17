@@ -287,3 +287,15 @@ Static resources/diff checks pass. Device checks pending: light/dark/dynamic the
 search by app/package/override, clear/no results, single-result corners, long-press,
 large font, TalkBack, animations disabled via system settings and toggle persistence.
 No Android screenshot render or build verification performed in this environment.
+
+## Popup headers and Montserrat
+
+Removed the sample Genshin icon only from shared ElasticSheet headers; the sample
+presence preview and actual app icons in App options remain. Montserrat is bundled
+at weights 400/500/600/700 for all standard Material typography roles, plus the
+native floating-log header. Diagnostic text remains monospace. OFL licence ships
+inside the APK; About credits identify the font.
+
+Checked font tables/weights and static instancing, header icon removal and preview
+icon preservation. Device checks pending: offline launch, popup title wrapping,
+large font scaling, missing-script system fallback and Android 8 rendering.

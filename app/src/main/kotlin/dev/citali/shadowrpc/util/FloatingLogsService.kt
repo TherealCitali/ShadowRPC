@@ -84,6 +84,7 @@ class FloatingLogsService : Service() {
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         val title = TextView(this).apply {
             text = getString(R.string.floating_logs_drag)
+            typeface = androidx.core.content.res.ResourcesCompat.getFont(this@FloatingLogsService, R.font.montserrat_medium)
             setTextColor(Color.WHITE); textSize = 14f
             setPadding(dp(8), 0, 0, 0)
         }
