@@ -132,7 +132,7 @@ fun HomeAppList(
                 }
                 // Commit before starting/stopping: the service reads this on its first poll.
                 context.setPref(Prefs.AppDetectionEnabledKey, wanted)
-                if (wanted) AppDetectionService.start(context) else AppDetectionService.stop(context)
+                if (wanted) AppDetectionService.startIfEnabled(context) else AppDetectionService.stop(context)
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (error: Exception) {

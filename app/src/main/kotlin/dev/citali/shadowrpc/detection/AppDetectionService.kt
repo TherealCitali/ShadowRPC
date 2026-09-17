@@ -95,9 +95,9 @@ class AppDetectionService : LifecycleService() {
                     backgroundSinceElapsed = null
                     updateNotification(getString(R.string.rpc_paused))
                     Timber.tag(TAG).i("Notification Stop RPC completed; detection settings preserved")
-                    if (_running.value && pollJob?.isActive != true) {
-                        pollJob = lifecycleScope.launch { pollLoop() }
-                    }
+                    // Saved detection preference stays on; the active service need not.
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {
@@ -128,9 +128,11 @@ class AppDetectionService : LifecycleService() {
                 if (!pref(Prefs.RpcEnabledKey, true)) {
                     sharedPackage = null
                     backgroundSinceElapsed = null
-                    updateNotification(getString(R.string.rpc_paused))
-                    delay(POLL_INTERVAL_MS)
-                    continue
+                    // Master Off means no active watcher or persistent notification.
+                    // Enabling master RPC calls startIfEnabled to resume saved detection.
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
+                    return
                 }
 
                 val watched = pref(Prefs.AppDetectionPackagesKey, emptySet())
@@ -342,7 +344,8 @@ class AppDetectionService : LifecycleService() {
         /** Restart after boot / process death if the user left detection on and access is still granted. */
         suspend fun startIfEnabled(context: Context) {
             val enabled = context.pref(Prefs.AppDetectionEnabledKey, false)
-            if (enabled && ForegroundAppDetector.hasUsageAccess(context)) start(context)
+            val rpcEnabled = context.pref(Prefs.RpcEnabledKey, true)
+            if (enabled && rpcEnabled && ForegroundAppDetector.hasUsageAccess(context)) start(context)
         }
     }
 }

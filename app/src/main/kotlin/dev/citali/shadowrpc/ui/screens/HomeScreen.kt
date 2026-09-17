@@ -54,7 +54,7 @@ fun HomeScreen(
                     IconButton(onClick = {
                         scope.launch {
                             PresenceManager.clear(context)
-                            if (detectionEnabled) AppDetectionService.start(context)
+                            if (detectionEnabled) AppDetectionService.startIfEnabled(context)
                         }
                     }) {
                         Icon(Icons.Rounded.Refresh, contentDescription = stringResource(R.string.action_refresh))

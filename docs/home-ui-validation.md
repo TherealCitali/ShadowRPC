@@ -313,3 +313,16 @@ notification-action log messages distinguish action delivery from cleanup delays
 Pending device checks: notification Stop during normal publishing, icon upload,
 OAuth refresh, disconnected network and grace; rapid taps; master On afterward.
 Static diff checks passed; runtime/build verification remains pending.
+
+## Master Off removes the detection notification
+
+Supersedes the earlier paused-service behaviour: notification Stop RPC shuts down
+and removes the foreground notification after switching master RPC Off, without
+writing AppDetectionEnabledKey or the allow-list. The poll loop also exits if
+master RPC is turned Off in the UI. startIfEnabled now requires both master RPC
+and detection enabled, so Activity onStart, boot and Refresh do not recreate the
+notification while master is Off. Enabling master resumes saved detection.
+
+Static checks passed; device tests pending: Stop while detection preference On,
+Stop with master already Off, reopen app/Refresh while Off, reboot while Off,
+and turn master On to resume. Detection toggle and app selections must persist.
