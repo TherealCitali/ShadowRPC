@@ -12,6 +12,7 @@ as *Playing &lt;game&gt;* — using the same OAuth2 + gateway stack that powers
 
 [![Build](https://github.com/TherealCitali/ShadowRPC/actions/workflows/build.yml/badge.svg)](https://github.com/TherealCitali/ShadowRPC/actions/workflows/build.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+<img src="https://img.shields.io/github/downloads/TherealCitali/ShadowRPC/total?style=for-the-badge&color=6366f1&labelColor=1e1e2e&logo=github" alt="Downloads" />
 
 </div>
 
