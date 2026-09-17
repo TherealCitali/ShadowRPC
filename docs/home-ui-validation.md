@@ -299,3 +299,17 @@ inside the APK; About credits identify the font.
 Checked font tables/weights and static instancing, header icon removal and preview
 icon preservation. Device checks pending: offline launch, popup title wrapping,
 large font scaling, missing-script system fallback and Android 8 rendering.
+
+## Notification Stop responsiveness
+
+Stop RPC now cancels the publishing poll before pausing, deduplicates repeated
+Stop taps, and delivers its PendingIntent to the existing service without a new
+foreground-service start request. The master preference is persisted before
+waiting for the publish mutex. Stop sends an empty activity only over an existing
+connection, then closes it; no OAuth refresh/reconnect is attempted just to stop.
+AppDetectionEnabledKey and selected apps remain unchanged. Received/completed
+notification-action log messages distinguish action delivery from cleanup delays.
+
+Pending device checks: notification Stop during normal publishing, icon upload,
+OAuth refresh, disconnected network and grace; rapid taps; master On afterward.
+Static diff checks passed; runtime/build verification remains pending.

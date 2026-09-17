@@ -54,6 +54,7 @@ object PresenceManager {
     private const val TAG = "PresenceManager"
 
     private val mutex = Mutex()
+    private val toggleMutex = Mutex()
     private var lastSent: PresenceRequest? = null
     private var lastSentAtMs = 0L
     private var lastActivity: DiscordPresenceActivity? = null
@@ -104,6 +105,8 @@ object PresenceManager {
                     onlineStatus = DiscordOnlineStatus.fromPreference(context.pref(Prefs.ActivityStatusKey, "online")),
                 )
 
+            // Off may have been pressed while OAuth/settings were loading.
+            if (!context.pref(Prefs.RpcEnabledKey, true)) return
             if (activity == lastActivity && DiscordSocialPresenceClient.isStarted && now - lastSentAtMs < MIN_INTERVAL_MS) return
             val changed = activity != lastActivity
             if (changed) Timber.tag(TAG).i("Publishing name=%s type=%s (%d)", activity.name, activity.type.name, activity.type.nativeValue)
@@ -123,14 +126,25 @@ object PresenceManager {
         }
     }
 
-    /** Serialize the master switch with in-flight publishes so Off always wins. */
+    /** Persist the gate before waiting for network work; serialize rapid toggle requests. */
     suspend fun setEnabled(context: Context, enabled: Boolean) {
-        mutex.withLock {
+        toggleMutex.withLock {
             Timber.tag(TAG).i("User changed master RPC: enabled=%s", enabled)
             context.setPref(Prefs.RpcEnabledKey, enabled)
             if (!enabled) {
-                clearLocked(context)
-                DiscordSocialPresenceClient.close()
+                mutex.withLock {
+                    // Stop never refreshes OAuth or opens a new gateway just to clear.
+                    try {
+                        DiscordSocialPresenceClient.clearPresence()
+                            .onFailure { Timber.tag(TAG).w(it, "Could not send clear; closing transport") }
+                    } finally {
+                        DiscordSocialPresenceClient.close()
+                        lastActivity = null
+                        lastSent = null
+                        lastSentAtMs = 0L
+                        _state.value = PresenceState.Idle
+                    }
+                }
             }
         }
     }

@@ -47,6 +47,7 @@ import timber.log.Timber
  */
 class AppDetectionService : LifecycleService() {
     private var pollJob: Job? = null
+    private var pauseJob: Job? = null
     private var iconJob: Job? = null
     private val iconUrls = mutableMapOf<String, String>()
     private val iconAttempts = mutableMapOf<String, Long>()
@@ -78,13 +79,22 @@ class AppDetectionService : LifecycleService() {
     ): Int {
         super.onStartCommand(intent, flags, startId)
         if (intent?.action == ACTION_STOP) {
-            lifecycleScope.launch {
+            Timber.tag(TAG).i("Notification Stop RPC received")
+            if (pauseJob?.isActive == true) return START_STICKY
+            // Cancel the producer so a slow publish cannot keep winning the stop race.
+            pollJob?.cancel()
+            pollJob = null
+            sharedPackage = null
+            backgroundSinceElapsed = null
+            updateNotification(getString(R.string.rpc_paused))
+            pauseJob = lifecycleScope.launch {
                 try {
                     // Notification Stop controls RPC, not the saved detection configuration.
                     PresenceManager.setEnabled(this@AppDetectionService, false)
                     sharedPackage = null
                     backgroundSinceElapsed = null
                     updateNotification(getString(R.string.rpc_paused))
+                    Timber.tag(TAG).i("Notification Stop RPC completed; detection settings preserved")
                     if (_running.value && pollJob?.isActive != true) {
                         pollJob = lifecycleScope.launch { pollLoop() }
                     }
@@ -97,7 +107,7 @@ class AppDetectionService : LifecycleService() {
             return START_STICKY
         }
         if (!_running.value) return START_NOT_STICKY
-        if (pollJob?.isActive != true) pollJob = lifecycleScope.launch { pollLoop() }
+        if (pauseJob?.isActive != true && pollJob?.isActive != true) pollJob = lifecycleScope.launch { pollLoop() }
         return START_STICKY
     }
 
@@ -261,7 +271,7 @@ class AppDetectionService : LifecycleService() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
         val stop =
-            PendingIntent.getForegroundService(
+            PendingIntent.getService(
                 this,
                 1,
                 Intent(this, AppDetectionService::class.java).setAction(ACTION_STOP),
