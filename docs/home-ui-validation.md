@@ -326,3 +326,17 @@ notification while master is Off. Enabling master resumes saved detection.
 Static checks passed; device tests pending: Stop while detection preference On,
 Stop with master already Off, reopen app/Refresh while Off, reboot while Off,
 and turn master On to resume. Detection toggle and app selections must persist.
+
+## Configurable background grace
+
+Default reduced from the hard-coded testing value of 150 seconds to 15 seconds.
+Home App Detection controls include a persisted 0–180 second slider with 5-second
+steps. Zero means no added grace (clear on the next ~3-second poll). Writes happen
+when adjustment finishes, not at every drag tick. The service reads the current
+setting each background poll, clamps it to range, and uses the existing monotonic
+start time: changing the slider does not restart the grace clock. Existing users
+without a saved value also get 15 seconds. Policies updated to describe this.
+
+Static XML/diff/policy consistency checks passed. Device checks pending: default,
+0/15/180, adjustment during active grace, restart persistence, TalkBack adjustment,
+return to the same app, switch selected apps, and explicit Stop bypassing grace.

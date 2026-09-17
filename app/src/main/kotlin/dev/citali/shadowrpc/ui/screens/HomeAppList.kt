@@ -34,6 +34,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.Slider
+import kotlin.math.roundToInt
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -46,6 +48,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -89,6 +93,9 @@ fun HomeAppList(
     val (watched, setWatched) = rememberPreference(Prefs.AppDetectionPackagesKey, emptySet())
     val (showIcon, setShowIcon) = rememberPreference(Prefs.AppDetectionShowIconKey, false)
     val (timestamps, setTimestamps) = rememberPreference(Prefs.AppDetectionTimestampsKey, true)
+
+    val (graceSeconds, setGraceSeconds) = rememberPreference(Prefs.BackgroundGraceSecondsKey, Prefs.DefaultGraceSeconds)
+    var graceDraft by remember(graceSeconds) { mutableStateOf(graceSeconds.coerceIn(0, Prefs.MaxGraceSeconds).toFloat()) }
 
     var hasUsageAccess by remember { mutableStateOf(ForegroundAppDetector.hasUsageAccess(context)) }
     // Re-check when the user comes back from the system Usage access page.
@@ -166,7 +173,7 @@ fun HomeAppList(
                         onCheckedChange = setShowIcon,
                     )
                 }
-                GroupedPreferenceCard(last = true) {
+                GroupedPreferenceCard {
                     SwitchPreference(
                         title = stringResource(R.string.app_detection_timestamps),
                         description = stringResource(R.string.app_detection_timestamps_summary),
@@ -174,6 +181,27 @@ fun HomeAppList(
                         checked = timestamps,
                         onCheckedChange = setTimestamps,
                     )
+                }
+                GroupedPreferenceCard(last = true) {
+                    Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+                        Text(stringResource(R.string.grace_title), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            stringResource(if (graceDraft.roundToInt() == 0) R.string.grace_none else R.string.grace_seconds, graceDraft.roundToInt()),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        val sliderLabel = stringResource(R.string.grace_title)
+                        Slider(
+                            modifier = Modifier.semantics { contentDescription = sliderLabel },
+                            value = graceDraft,
+                            onValueChange = { graceDraft = (it / 5f).roundToInt() * 5f },
+                            onValueChangeFinished = { setGraceSeconds(graceDraft.roundToInt()) },
+                            valueRange = 0f..Prefs.MaxGraceSeconds.toFloat(),
+                            steps = 35,
+                        )
+                        Text(stringResource(R.string.grace_summary), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
             }
         }

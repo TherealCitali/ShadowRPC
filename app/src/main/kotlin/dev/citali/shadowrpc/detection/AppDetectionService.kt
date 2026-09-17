@@ -156,9 +156,11 @@ class AppDetectionService : LifecycleService() {
                             val now = SystemClock.elapsedRealtime()
                             val since = backgroundSinceElapsed ?: now.also {
                                 backgroundSinceElapsed = it
-                                Timber.tag(TAG).i("Background grace started for %s (150 seconds)", previous)
+                                Timber.tag(TAG).i("Background grace started for %s", previous)
                             }
-                            val remaining = BACKGROUND_GRACE_MS - (now - since)
+                            val graceMs = pref(Prefs.BackgroundGraceSecondsKey, Prefs.DefaultGraceSeconds)
+                                .coerceIn(0, Prefs.MaxGraceSeconds) * 1000L
+                            val remaining = graceMs - (now - since)
                             if (remaining > 0L) {
                                 // Complete late icon uploads while the user checks Discord.
                                 // Keep the original session timestamp and grace deadline.
@@ -323,7 +325,6 @@ class AppDetectionService : LifecycleService() {
         private const val NOTIFICATION_ID = 1001
         private const val ACTION_STOP = "dev.citali.shadowrpc.action.STOP_APP_DETECTION"
         private const val POLL_INTERVAL_MS = 3_000L
-        private const val BACKGROUND_GRACE_MS = 150_000L
         private const val TAG = "AppDetectionService"
 
         private val _running = MutableStateFlow(false)

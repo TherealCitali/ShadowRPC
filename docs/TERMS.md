@@ -18,7 +18,7 @@ Discord, Catbox, GitHub and other linked services operate under their own terms 
 
 ## App behaviour and limitations
 
-Rich Presence can reveal which apps you use and how long you use them. Review the Privacy Policy, app allow-list, templates and icon-upload option. A background grace period may keep your last activity visible for about 150 seconds; use master RPC Off to clear it sooner. Network errors or Discord caching may delay clearing or updates.
+Rich Presence can reveal which apps you use and how long you use them. Review the Privacy Policy, app allow-list, templates and icon-upload option. A background grace period may keep your last activity visible for the configured grace period (15 seconds by default, adjustable from 0 to 180 seconds); use master RPC Off to clear it sooner. Network errors or Discord caching may delay clearing or updates.
 
 Android restrictions, battery management, permissions, network availability and Discord’s APIs/client layout can affect reliability. Presence may be delayed, missing, inaccurate or rendered differently across clients. The app is not suitable for safety-critical monitoring. Optional anonymous icon uploads are public and cannot be automatically deleted remotely by ShadowRPC.
 

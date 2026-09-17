@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -20,6 +21,10 @@ object Prefs {
     val DiscordUsernameKey = stringPreferencesKey("discordUsername")
     val DiscordNameKey = stringPreferencesKey("discordName")
     val DiscordAvatarUrlKey = stringPreferencesKey("discordAvatarUrl")
+
+    const val DefaultGraceSeconds = 15
+    const val MaxGraceSeconds = 180
+    val BackgroundGraceSecondsKey = intPreferencesKey("backgroundGraceSeconds")
 
     // App detection
     val AppDetectionEnabledKey = booleanPreferencesKey("appDetectionEnabled")

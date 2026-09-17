@@ -166,4 +166,8 @@
     <string name="about_terms_summary">Software licence, third-party services and limitations</string>
     <string name="legal_loading">Loading document…</string>
     <string name="legal_load_error">Could not load this document. It is also available in the repository docs folder.</string>
+    <string name="grace_title">Background grace period</string>
+    <string name="grace_none">Off — clear on next poll</string>
+    <string name="grace_seconds">%1$d seconds</string>
+    <string name="grace_summary">Keep RPC briefly after leaving a selected app. Default: 15 seconds. Range: 0–180 seconds. Detection polls about every 3 seconds.</string>
 </resources>

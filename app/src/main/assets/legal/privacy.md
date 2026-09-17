@@ -10,7 +10,7 @@ ShadowRPC (Android package dev.citali.shadowrpc) is an open-source app maintaine
 
 With Usage access enabled, ShadowRPC reads Android usage events to determine which app is in the foreground. It reads installed-app names, package identifiers, categories and launcher icons to show the app list and create presence. It does not use this permission to read messages, passwords, screen contents or files inside those apps.
 
-Settings stored locally include selected apps, per-app names and presence overrides, appearance choices, RPC preferences and cached icon URLs. Foreground detection runs as a foreground service when enabled. It can retain the last selected app’s presence for about 150 seconds after you leave it; turning master RPC off clears it without waiting for that grace period.
+Settings stored locally include selected apps, per-app names and presence overrides, appearance choices, RPC preferences and cached icon URLs. Foreground detection runs as a foreground service when enabled. It can retain the last selected app’s presence for the configured grace period (15 seconds by default, adjustable from 0 to 180 seconds) after you leave it; turning master RPC off clears it without waiting for that grace period.
 
 ## Discord sign-in and presence
 
