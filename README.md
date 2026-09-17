@@ -54,3 +54,9 @@ GPL-3.0 — see [LICENSE](LICENSE).
 Read the [Privacy Policy](docs/PRIVACY.md) and [Terms of Use](docs/TERMS.md).
 Both are also available offline inside **About**. The app source remains licensed
 under GPL-3.0; the terms do not restrict rights granted by that licence.
+
+Prerelease retention: after a successful automatic publication, the workflow keeps
+the five most recently published prereleases across the repository and deletes
+older prereleases and their assets. Stable releases and drafts are excluded.
+Automated `prerelease-<commit SHA>` tags belonging to deleted releases are removed;
+other tags are retained. Actions artifacts have their own retention settings.

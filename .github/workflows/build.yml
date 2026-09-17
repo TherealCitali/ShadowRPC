@@ -142,3 +142,52 @@ jobs:
           files: |
             prerelease_apk/*.apk
             prerelease_apk/*.sha256
+
+  prune-prereleases:
+    name: Keep newest five prereleases
+    needs: prerelease
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # Serialize cleanup across main/dev without cancelling APK publication jobs.
+    concurrency:
+      group: shadowrpc-prerelease-cleanup
+      cancel-in-progress: false
+    steps:
+      - name: Delete older published prereleases
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repo = context.repo;
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              ...repo, per_page: 100,
+            });
+            const prereleases = releases
+              .filter(release => release.prerelease && !release.draft)
+              .sort((a, b) =>
+                Date.parse(b.published_at || b.created_at) - Date.parse(a.published_at || a.created_at)
+                || b.id - a.id);
+            core.info(`Found ${prereleases.length} published prereleases; keeping the newest 5.`);
+            for (const candidate of prereleases.slice(5)) {
+              // Re-check in case somebody promoted it to stable after the listing.
+              let release;
+              try {
+                ({ data: release } = await github.rest.repos.getRelease({
+                  ...repo, release_id: candidate.id,
+                }));
+              } catch (error) {
+                if (error.status === 404) continue;
+                throw error;
+              }
+              if (!release.prerelease || release.draft) continue;
+              core.info(`Deleting prerelease ${release.tag_name} (${release.id}) and its assets.`);
+              await github.rest.repos.deleteRelease({ ...repo, release_id: release.id });
+              // Do not delete hand-maintained version tags or arbitrary user tags.
+              if (/^prerelease-[0-9a-f]{40}$/.test(release.tag_name)) {
+                try {
+                  await github.rest.git.deleteRef({ ...repo, ref: `tags/${release.tag_name}` });
+                } catch (error) {
+                  if (error.status !== 404) throw error;
+                }
+              }
+            }
