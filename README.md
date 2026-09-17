@@ -1,6 +1,6 @@
 <div align="center">
 
- <img src="@xvier2tuff-modified.png" width="160" height="160" alt="App icon" style="border-radius: 22%">
+ <img src="Assets/ShadowRPC-Icon.png" width="160" height="160" alt="App icon" style="border-radius: 22%">
 
 # ShadowRPC
 
@@ -43,7 +43,8 @@ and can be revoked anytime; ShadowRPC stops itself when it is.
 
 ## Credits
 
-- [LunarTune](https://github.com/cognitiveshadows03/LunarTune) — Discord gateway / OAuth code (GPL-3.0)
+- [LunarTune](https://github.com/cognitiveshadows03/LunarTune) — Discord gateway / OAuth code (GPL-3.0), and an icon-design reference.
+- ShadowRPC icon artwork supplied by TherealCitali; [original PNGs](Assets/) and [asset notes](docs/ICON_ASSETS.md).
 
 ## License
 

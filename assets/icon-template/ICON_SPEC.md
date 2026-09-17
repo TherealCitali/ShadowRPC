@@ -1,7 +1,7 @@
 # ShadowRPC icon — what to deliver
 
-The current launcher icon is a temporary placeholder (see `app/src/main/res/mipmap-*`).
-When you design the real one, hand over the files below and it drops in without code changes.
+The supplied fox-mask artwork is now installed; see [current asset notes](../../docs/ICON_ASSETS.md).
+The guidance below is retained for future layered/vector source updates.
 
 ## 1. Adaptive launcher icon (Android 8+) — the important one
 

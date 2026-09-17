@@ -1,21 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <!-- moon body -->
-    <path
-        android:fillColor="#E9DDFF"
-        android:pathData="M54,26a28,28 0,1 0,0 56a22,22 0,1 1,0 -56z" />
-    <!-- three presence dots -->
-    <path
-        android:fillColor="#B69DF8"
-        android:pathData="M62,50m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0z" />
-    <path
-        android:fillColor="#B69DF8"
-        android:pathData="M74,50m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0z" />
-    <path
-        android:fillColor="#B69DF8"
-        android:pathData="M68,62m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0z" />
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Simplified fox mask for wallpaper tinting; full-colour art is unchanged. -->
+    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd"
+        android:pathData="M34,30L46,41L54,40L62,41L74,30L73,53L78,51L74,65L65,75L54,84L43,75L34,65L30,51L35,53Z M37,37L43,43L37,49Z M71,37L65,43L71,49Z M54,47L57,52L54,57L51,52Z M38,57L45,60L49,66L42,63Z M70,57L63,60L59,66L66,63Z" />
 </vector>
