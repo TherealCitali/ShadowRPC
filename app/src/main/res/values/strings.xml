@@ -159,4 +159,5 @@
     <string name="logs_export_success">Logs exported. Review the file before sharing.</string>
     <string name="logs_export_failed">Could not export logs. Try another destination.</string>
     <string name="logs_verbose">Verbose logging (temporary)</string>
+    <string name="apps_clear_search">Clear app search</string>
 </resources>

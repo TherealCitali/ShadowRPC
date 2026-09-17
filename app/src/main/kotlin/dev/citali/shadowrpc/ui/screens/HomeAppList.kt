@@ -3,23 +3,25 @@ package dev.citali.shadowrpc.ui.screens
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.provider.Settings
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.PaddingValues
-import dev.citali.shadowrpc.ui.component.PreferenceCard
-import dev.citali.shadowrpc.ui.component.PreferenceEntry
-import dev.citali.shadowrpc.ui.component.PreferenceGroupTitle
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Timer
@@ -31,11 +33,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -48,25 +48,30 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import dev.citali.shadowrpc.R
-import dev.citali.shadowrpc.data.setPref
 import dev.citali.shadowrpc.data.Prefs
 import dev.citali.shadowrpc.data.rememberPreference
+import dev.citali.shadowrpc.data.setPref
 import dev.citali.shadowrpc.detection.AppDetectionService
 import dev.citali.shadowrpc.detection.AppLabels
 import dev.citali.shadowrpc.detection.ForegroundAppDetector
 import dev.citali.shadowrpc.detection.InstalledApp
 import dev.citali.shadowrpc.detection.InstalledApps
 import dev.citali.shadowrpc.discord.DiscordOAuthRepository
+import dev.citali.shadowrpc.ui.component.ExpressiveSwitch
+import dev.citali.shadowrpc.ui.component.GroupedPreferenceCard
+import dev.citali.shadowrpc.ui.component.PreferenceGroupTitle
 import dev.citali.shadowrpc.ui.component.SwitchPreference
 import kotlinx.coroutines.launch
 
@@ -100,7 +105,6 @@ fun HomeAppList(
     val overrides = remember(overridesJson) { AppLabels.parse(overridesJson) }
     var renaming by remember { mutableStateOf<InstalledApp?>(null) }
 
-    var searching by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
     val apps by produceState<List<InstalledApp>>(emptyList()) { value = InstalledApps.load(context) }
     val filtered =
@@ -143,13 +147,8 @@ fun HomeAppList(
         item(key = "home_header") { Column { header() } }
         item(key = "detection_controls") {
             Column {
-            PreferenceGroupTitle(stringResource(R.string.feature_app_detection))
-            PreferenceCard {
-                Surface(
-                    shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                ) {
+                PreferenceGroupTitle(stringResource(R.string.feature_app_detection))
+                GroupedPreferenceCard(first = true) {
                     SwitchPreference(
                         title = stringResource(R.string.app_detection_enable),
                         checked = enabled,
@@ -158,27 +157,35 @@ fun HomeAppList(
                         icon = Icons.Outlined.Apps,
                     )
                 }
-                PreferenceEntry(
-                    title = stringResource(R.string.home_manage_apps),
-                    description = stringResource(R.string.home_manage_apps_summary),
-                    trailing = {
-                        IconButton(onClick = { searching = !searching; if (!searching) query = "" }) {
-                            Icon(if (searching) Icons.Rounded.Close else Icons.Rounded.Search,
-                                contentDescription = stringResource(R.string.app_detection_search))
-                        }
-                    },
-                )
-            }
+                GroupedPreferenceCard {
+                    SwitchPreference(
+                        title = stringResource(R.string.app_detection_show_icon),
+                        description = stringResource(R.string.app_detection_show_icon_summary),
+                        icon = Icons.Outlined.Apps,
+                        checked = showIcon,
+                        onCheckedChange = setShowIcon,
+                    )
+                }
+                GroupedPreferenceCard(last = true) {
+                    SwitchPreference(
+                        title = stringResource(R.string.app_detection_timestamps),
+                        description = stringResource(R.string.app_detection_timestamps_summary),
+                        icon = Icons.Outlined.Timer,
+                        checked = timestamps,
+                        onCheckedChange = setTimestamps,
+                    )
+                }
             }
         }
 
         if (!hasUsageAccess) {
             item {
                 Card(
+                    shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 24.dp, vertical = 12.dp),
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Text(stringResource(R.string.app_detection_permission_title), style = MaterialTheme.typography.titleLarge)
@@ -193,37 +200,27 @@ fun HomeAppList(
             }
         }
 
-        item(key = "icon_timestamp_options") {
-            Column {
-            SwitchPreference(
-                title = stringResource(R.string.app_detection_show_icon),
-                description = stringResource(R.string.app_detection_show_icon_summary),
-                icon = Icons.Outlined.Apps,
-                checked = showIcon,
-                onCheckedChange = setShowIcon,
+        item(key = "app_search") {
+            TextField(
+                value = query,
+                onValueChange = { query = it },
+                singleLine = true,
+                shape = RoundedCornerShape(50),
+                placeholder = { Text(stringResource(R.string.app_detection_search)) },
+                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (query.isNotEmpty()) IconButton(onClick = { query = "" }) {
+                        Icon(Icons.Rounded.Close, stringResource(R.string.apps_clear_search))
+                    }
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                ),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 20.dp),
             )
-            SwitchPreference(
-                title = stringResource(R.string.app_detection_timestamps),
-                description = stringResource(R.string.app_detection_timestamps_summary),
-                icon = Icons.Outlined.Timer,
-                checked = timestamps,
-                onCheckedChange = setTimestamps,
-            )
-            }
-        }
-
-        if (searching) {
-            item {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    singleLine = true,
-                    placeholder = { Text(stringResource(R.string.app_detection_search)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-            }
         }
 
         if (filtered.isEmpty() && apps.isNotEmpty()) {
@@ -237,16 +234,22 @@ fun HomeAppList(
             }
         }
 
-        items(filtered, key = { it.packageName }) { app ->
-            AppRow(
-                app = app,
-                displayName = overrides[app.packageName],
-                checked = app.packageName in watched,
-                onCheckedChange = { on ->
-                    setWatched(if (on) watched + app.packageName else watched - app.packageName)
-                },
-                onLongPress = { renaming = app },
-            )
+        itemsIndexed(filtered, key = { _, app -> app.packageName }) { index, app ->
+            GroupedPreferenceCard(
+                first = index == 0,
+                last = index == filtered.lastIndex,
+                modifier = Modifier.animateItem(),
+            ) {
+                AppRow(
+                    app = app,
+                    displayName = overrides[app.packageName],
+                    checked = app.packageName in watched,
+                    onCheckedChange = { on ->
+                        setWatched(if (on) watched + app.packageName else watched - app.packageName)
+                    },
+                    onLongPress = { renaming = app },
+                )
+            }
         }
     }
 
@@ -273,10 +276,18 @@ private fun AppRow(
     val icon: Drawable? = remember(app.packageName) { InstalledApps.icon(context, app.packageName) }
     val bitmap = remember(icon) { icon?.toBitmap(96, 96)?.asImageBitmap() }
 
+    val rowColor by animateColorAsState(
+        targetValue = if (checked) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f)
+            else MaterialTheme.colorScheme.surfaceContainerLow,
+        animationSpec = spring(stiffness = 350f),
+        label = "App selection colour",
+    )
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
+            .background(rowColor)
+            .heightIn(min = 88.dp)
             .combinedClickable(onClick = { onCheckedChange(!checked) }, onLongClick = onLongPress, onLongClickLabel = stringResource(R.string.app_options))
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
@@ -289,14 +300,16 @@ private fun AppRow(
         }
         Spacer(Modifier.width(18.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(displayName ?: app.label, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Normal)
+            Text(displayName ?: app.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(
                 if (displayName != null) "${app.label} · ${app.packageName}" else app.packageName,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         Spacer(Modifier.width(12.dp))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        ExpressiveSwitch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }

@@ -1,5 +1,6 @@
 package dev.citali.shadowrpc.ui.component
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Cancel
+import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -123,7 +126,7 @@ fun SwitchPreference(
         icon = icon,
         enabled = enabled,
         onClick = { onCheckedChange(!checked) },
-        trailing = { Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled) },
+        trailing = { ExpressiveSwitch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled) },
     )
 }
 
@@ -158,7 +161,7 @@ fun MasterSwitchCard(
                 color = if (checked) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.weight(1f),
             )
-            Box { Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled) }
+            Box { ExpressiveSwitch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled) }
         }
     }
 }
@@ -175,4 +178,43 @@ fun PreferenceCard(content: @Composable () -> Unit) {
             content()
         }
     }
+}
+
+/** Material switch with the reference design's checked/unchecked thumb symbols. */
+@Composable
+fun ExpressiveSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit, enabled: Boolean = true) {
+    Switch(
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        enabled = enabled,
+        thumbContent = {
+            Crossfade(targetState = checked, label = "Switch thumb") { on ->
+                Icon(
+                    imageVector = if (on) Icons.Rounded.DoneAll else Icons.Outlined.Cancel,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        },
+    )
+}
+
+/** Closely spaced rows with rounded outer corners, like LunarTune Appearance. */
+@Composable
+fun GroupedPreferenceCard(
+    first: Boolean = false,
+    last: Boolean = false,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(
+            topStart = if (first) 28.dp else 4.dp,
+            topEnd = if (first) 28.dp else 4.dp,
+            bottomStart = if (last) 28.dp else 4.dp,
+            bottomEnd = if (last) 28.dp else 4.dp,
+        ),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 1.dp),
+    ) { content() }
 }

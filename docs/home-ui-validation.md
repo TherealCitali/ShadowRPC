@@ -271,3 +271,19 @@ The App Detection switch remains the explicit way to disable detection itself.
 Static diff/handler checks passed. Pending device checks: Stop RPC while active,
 during background grace and during upload; both on-screen toggles reflect master
 Off / detection unchanged; app selections survive restart; master On resumes.
+
+## Home app-list visual polish
+
+Removed Manage apps explanatory/search-button row. Detection, icon and timestamp
+switches form a close-spaced card group with rounded outside corners. An always
+visible rounded search field (search/clear icons) sits above the app rows.
+Each app is a lazy keyed card; first/last visible results receive rounded outer
+corners. Filtering animates insertion/removal/placement, selection colours use a
+spring, and shared switches crossfade check/cross thumb icons. Dynamic colour
+roles are retained; RPC/detection behaviour is unchanged. Long press still opens
+App options. App/package labels are capped at two lines for predictable spacing.
+
+Static resources/diff checks pass. Device checks pending: light/dark/dynamic theme,
+search by app/package/override, clear/no results, single-result corners, long-press,
+large font, TalkBack, animations disabled via system settings and toggle persistence.
+No Android screenshot render or build verification performed in this environment.
