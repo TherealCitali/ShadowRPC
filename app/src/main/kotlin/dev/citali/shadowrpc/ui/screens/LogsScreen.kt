@@ -63,7 +63,7 @@ fun LogsScreen(onBack: () -> Unit) {
             // Snapshot once the user chooses a destination; file I/O stays off the UI thread.
             val snapshot = InMemoryLogTree.lines.value
             val text = "ShadowRPC ${BuildConfig.VERSION_NAME} / Android ${android.os.Build.VERSION.SDK_INT}\n" +
-                "Exported ${java.util.Date()} — ${snapshot.size} buffered entries\n\n" +
+                "Build ${BuildConfig.BUILD_COMMIT} / ${BuildConfig.BUILD_DATE}\nExported ${java.util.Date()} — ${snapshot.size} buffered entries\n\n" +
                 snapshot.joinToString("\n") { "${it.time} [${it.priority}] ${it.tag ?: "-"}: ${it.message}" }
             exporting = true
             scope.launch {

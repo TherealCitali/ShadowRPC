@@ -4,6 +4,10 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+import dev.citali.shadowrpc.presence.PresencePrivacy
+import kotlinx.coroutines.cancelAndJoin
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.SystemClock
@@ -46,6 +50,28 @@ import timber.log.Timber
  * Android 10 devices; the notification doubles as the "what am I sharing" view.
  */
 class AppDetectionService : LifecycleService() {
+    private var privacyJob: Job? = null
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action != Intent.ACTION_SCREEN_OFF || privacyJob?.isActive == true) return
+            privacyJob = lifecycleScope.launch {
+                if (pref(Prefs.ClearOnLockKey, false)) {
+                    iconJob?.cancel()
+                    pollJob?.cancelAndJoin()
+                    pollJob = null
+                    sharedPackage = null
+                    backgroundSinceElapsed = null
+                    try { withTimeout(10_000L) { PresenceManager.clearForPrivacy() } }
+                    catch (timeout: TimeoutCancellationException) { Timber.tag(TAG).w("Lock-screen clear timed out") }
+                    catch (cancelled: CancellationException) { throw cancelled }
+                    catch (error: Exception) { Timber.tag(TAG).w(error, "Lock-screen clear failed") }
+                    finally {
+                        if (_running.value && pauseJob?.isActive != true && pollJob?.isActive != true) pollJob = lifecycleScope.launch { pollLoop() }
+                    }
+                }
+            }
+        }
+    }
     private var pollJob: Job? = null
     private var pauseJob: Job? = null
     private var iconJob: Job? = null
@@ -60,6 +86,7 @@ class AppDetectionService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
+        ContextCompat.registerReceiver(this, screenReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF), ContextCompat.RECEIVER_NOT_EXPORTED)
         ForegroundAppDetector.reset()
         try {
             startForegroundCompat(buildNotification(getString(R.string.app_detection_notification_idle)))
@@ -133,6 +160,16 @@ class AppDetectionService : LifecycleService() {
                     stopForeground(STOP_FOREGROUND_REMOVE)
                     stopSelf()
                     return
+                }
+
+                if (PresencePrivacy.isSuppressed(this)) {
+                    iconJob?.cancel()
+                    if (sharedPackage != null) PresenceManager.clearForPrivacy()
+                    sharedPackage = null
+                    backgroundSinceElapsed = null
+                    updateNotification(getString(R.string.privacy_rpc_paused))
+                    delay(POLL_INTERVAL_MS)
+                    continue
                 }
 
                 val watched = pref(Prefs.AppDetectionPackagesKey, emptySet())
@@ -209,7 +246,7 @@ class AppDetectionService : LifecycleService() {
         val subject = AppLabels.subject(this, packageName)
         val overrides = AppPresenceOverrides.load(this, packageName)
         val text = ActivityTemplate.resolve(overrides.applyTo(ActivityContent.load(this)), subject, getString(R.string.app_name))
-        val showIcon = pref(Prefs.AppDetectionShowIconKey, false)
+        val showIcon = pref(Prefs.AppDetectionShowIconKey, false) && pref(Prefs.IconUploadConsentKey, false)
         val timestamps = pref(Prefs.AppDetectionTimestampsKey, true)
         // Optional artwork must never block foreground polling / initial text presence.
         val icon = if (showIcon) iconUrls[packageName] else null
@@ -309,6 +346,8 @@ class AppDetectionService : LifecycleService() {
     }
 
     override fun onDestroy() {
+        runCatching { unregisterReceiver(screenReceiver) }
+        privacyJob?.cancel()
         iconJob?.cancel()
         pollJob?.cancel()
         pollJob = null

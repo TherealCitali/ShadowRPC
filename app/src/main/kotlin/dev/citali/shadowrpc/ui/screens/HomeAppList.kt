@@ -91,6 +91,8 @@ fun HomeAppList(
 
     val (enabled) = rememberPreference(Prefs.AppDetectionEnabledKey, false)
     val (watched, setWatched) = rememberPreference(Prefs.AppDetectionPackagesKey, emptySet())
+    val (iconConsent) = rememberPreference(Prefs.IconUploadConsentKey, false)
+    var consentDialog by remember { mutableStateOf(false) }
     val (showIcon, setShowIcon) = rememberPreference(Prefs.AppDetectionShowIconKey, false)
     val (timestamps, setTimestamps) = rememberPreference(Prefs.AppDetectionTimestampsKey, true)
 
@@ -169,8 +171,10 @@ fun HomeAppList(
                         title = stringResource(R.string.app_detection_show_icon),
                         description = stringResource(R.string.app_detection_show_icon_summary),
                         icon = Icons.Outlined.Apps,
-                        checked = showIcon,
-                        onCheckedChange = setShowIcon,
+                        checked = showIcon && iconConsent,
+                        onCheckedChange = { wanted ->
+                            if (wanted && !iconConsent) consentDialog = true else setShowIcon(wanted)
+                        },
                     )
                 }
                 GroupedPreferenceCard {
@@ -281,6 +285,16 @@ fun HomeAppList(
         }
     }
 
+    if (consentDialog) dev.citali.shadowrpc.ui.component.IconUploadConsent(
+        onAccept = {
+            scope.launch {
+                context.setPref(Prefs.IconUploadConsentKey, true)
+                context.setPref(Prefs.AppDetectionShowIconKey, true)
+                consentDialog = false
+            }
+        },
+        onDismiss = { consentDialog = false; setShowIcon(false) },
+    )
     renaming?.let { app ->
         AppOptionsDialog(
             app = app,

@@ -25,6 +25,11 @@ fun AboutScreen(onBack: () -> Unit, onNavigate: (String) -> Unit) {
             icon = Icons.Outlined.Info,
         )
         PreferenceEntry(
+            title = stringResource(R.string.build_information),
+            description = "${BuildConfig.BUILD_COMMIT} · ${BuildConfig.BUILD_TYPE}\n${BuildConfig.BUILD_DATE}",
+            icon = Icons.Outlined.Code,
+        )
+        PreferenceEntry(
             title = stringResource(R.string.about_source),
             description = stringResource(R.string.about_source_summary),
             icon = Icons.Outlined.Code,

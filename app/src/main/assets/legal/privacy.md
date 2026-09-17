@@ -47,3 +47,9 @@ Catbox: https://catbox.moe/ — consult its current policies before enabling upl
 GitHub: https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement
 
 Use requires meeting Discord’s minimum-age and eligibility rules in your jurisdiction. ShadowRPC is not intended to collect information from children below that age. Privacy rights vary by jurisdiction; use the contact above to request clarification without publishing personal information. This policy may change with the app; the effective date and repository history identify revisions. Material changes to data practices should be reviewed before using an updated version.
+
+## Additional privacy and convenience controls
+
+Clear RPC when locked optionally bypasses the background grace on screen-off/lock. Timed pause stores a local resume deadline (15 minutes or 1 hour); manual pause lasts until resumed. Automatic resumption needs master RPC and App Detection to remain enabled and Android to allow the watcher to run. Device sleep, clock changes, networking and process restrictions can delay it. The Quick Settings tile changes master RPC, not your selected-app list.
+
+Settings export writes selected apps, custom templates/overrides, appearance and privacy preferences to a JSON document through Android’s file picker. It excludes credentials/account data, logs, icon URLs, upload consent, running toggles and pause timers. Backups may expose installed-app choices or custom text and can be saved to a cloud provider you select. Import requires confirmation and applies only recognized preferences; it does not authorize icon uploads or change your signed-in Discord account. A first-use disclosure requires a choice before public icon uploads are permitted. Previously saved icon settings also require that disclosure to be accepted in this version.

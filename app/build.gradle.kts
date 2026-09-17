@@ -1,3 +1,4 @@
+import java.time.Instant
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
@@ -34,6 +35,10 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
+        val commit = providers.environmentVariable("GITHUB_SHA").orNull
+            ?.takeIf { it.matches(Regex("[0-9a-fA-F]{40}")) }?.take(12) ?: "local"
+        buildConfigField("String", "BUILD_COMMIT", "\"$commit\"")
+        buildConfigField("String", "BUILD_DATE", "\"${Instant.now()}\"")
 
         buildConfigField("String", "DISCORD_APPLICATION_ID", "\"$discordApplicationId\"")
         buildConfigField("long", "DISCORD_APPLICATION_ID_LONG", "${discordApplicationId}L")
@@ -94,6 +99,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
     implementation(libs.core.ktx)
     implementation(libs.splashscreen)
     implementation(libs.activity.compose)

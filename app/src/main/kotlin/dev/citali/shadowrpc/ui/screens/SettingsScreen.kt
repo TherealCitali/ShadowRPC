@@ -70,6 +70,7 @@ private val activityStatuses =
 @Composable
 fun SettingsScreen(onBack: () -> Unit) {
     ScreenScaffold(title = stringResource(R.string.drawer_settings), onBack = onBack) {
+        PrivacyConvenienceSettings()
         PresenceSettingsContent()
     }
 }

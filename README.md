@@ -60,3 +60,11 @@ the five most recently published prereleases across the repository and deletes
 older prereleases and their assets. Stable releases and drafts are excluded.
 Automated `prerelease-<commit SHA>` tags belonging to deleted releases are removed;
 other tags are retained. Actions artifacts have their own retention settings.
+
+### Privacy and convenience
+
+Settings includes optional clear-on-lock (bypasses grace), pause for 15 minutes / 1 hour / until resumed, and JSON settings export/import through Android’s file picker. Timer resumption is best-effort on the next detection poll; Android sleep or clock changes can delay it. Master Off still removes the watcher and its notification.
+
+Backups include app selections/custom text but exclude account credentials, logs, icon URLs/consent, runtime toggles and pause deadlines. Import validates recognized fields before a confirmation and atomic apply. Public Catbox icon uploads now require an explicit disclosure/consent, including for existing installations. Revoke consent in Settings; clearing saved icon links only removes local URLs, not remote uploads.
+
+Add **ShadowRPC** from Android Quick Settings → Edit. The tile toggles master RPC after unlocking and preserves detection preferences and selected apps. App Detection must already be enabled to start sharing. Build commit/date appear in About and exported logs.

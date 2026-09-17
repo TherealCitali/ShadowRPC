@@ -32,6 +32,11 @@ object Prefs {
     val AppDetectionShowIconKey = booleanPreferencesKey("appDetectionShowIcon")
     val AppDetectionTimestampsKey = booleanPreferencesKey("appDetectionTimestamps")
 
+    // Privacy / convenience (pause and upload consent are never exported).
+    val ClearOnLockKey = booleanPreferencesKey("clearOnLock")
+    val PauseUntilKey = longPreferencesKey("pauseUntil") // 0=none, -1=manual, otherwise epoch millis
+    val IconUploadConsentKey = booleanPreferencesKey("iconUploadConsentV1")
+
     // Presence
     val AppPresenceOverridesKey = stringPreferencesKey("appPresenceOverrides")
     val RpcEnabledKey = booleanPreferencesKey("rpcEnabled")

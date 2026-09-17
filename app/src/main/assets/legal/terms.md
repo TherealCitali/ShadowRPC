@@ -31,3 +31,7 @@ The software is provided without warranty to the extent permitted by law, as des
 You may stop using ShadowRPC at any time, turn off its features, revoke Discord authorization, clear local storage or uninstall it. Exported files and information held by third parties require separate handling. Future releases may change features; source code and changes are available in the repository. Revised terms will carry an updated effective date and will not remove rights already granted under the applicable software licence.
 
 Questions or reports: https://github.com/TherealCitali/ShadowRPC/issues. This is a public channel; omit credentials and sensitive personal information. No real-name disclosure is required by ShadowRPC.
+
+## Optional convenience features
+
+Timed resumption is best-effort and depends on Android execution and network availability. Review settings backups before sharing; imports may change your active presence configuration. The Quick Settings tile toggles master RPC but does not enable App Detection automatically. Lock-screen clearing and remote presence updates may be delayed by network conditions.

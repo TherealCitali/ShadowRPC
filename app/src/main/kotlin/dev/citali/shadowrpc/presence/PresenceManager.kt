@@ -14,6 +14,8 @@ import dev.citali.shadowrpc.discord.DiscordPresenceActivity
 import dev.citali.shadowrpc.discord.DiscordPresenceAssets
 import dev.citali.shadowrpc.discord.DiscordPresenceTimestamps
 import dev.citali.shadowrpc.discord.DiscordSocialPresenceClient
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -70,7 +72,7 @@ object PresenceManager {
         request: PresenceRequest,
     ) {
         mutex.withLock {
-            if (!context.pref(Prefs.RpcEnabledKey, true)) return
+            if (!context.pref(Prefs.RpcEnabledKey, true) || PresencePrivacy.isSuppressed(context)) return
             val now = android.os.SystemClock.elapsedRealtime()
 
             val token = DiscordOAuthRepository.getValidAccessToken(context)
@@ -106,7 +108,7 @@ object PresenceManager {
                 )
 
             // Off may have been pressed while OAuth/settings were loading.
-            if (!context.pref(Prefs.RpcEnabledKey, true)) return
+            if (!context.pref(Prefs.RpcEnabledKey, true) || PresencePrivacy.isSuppressed(context)) return
             if (activity == lastActivity && DiscordSocialPresenceClient.isStarted && now - lastSentAtMs < MIN_INTERVAL_MS) return
             val changed = activity != lastActivity
             if (changed) Timber.tag(TAG).i("Publishing name=%s type=%s (%d)", activity.name, activity.type.name, activity.type.nativeValue)
@@ -131,6 +133,7 @@ object PresenceManager {
         toggleMutex.withLock {
             Timber.tag(TAG).i("User changed master RPC: enabled=%s", enabled)
             context.setPref(Prefs.RpcEnabledKey, enabled)
+            context.setPref(Prefs.PauseUntilKey, 0L)
             if (!enabled) {
                 mutex.withLock {
                     // Stop never refreshes OAuth or opens a new gateway just to clear.
@@ -145,6 +148,22 @@ object PresenceManager {
                         _state.value = PresenceState.Idle
                     }
                 }
+            }
+        }
+    }
+
+    /** Privacy actions never refresh OAuth or reconnect merely to clear. */
+    suspend fun clearForPrivacy() {
+        mutex.withLock {
+            try {
+                DiscordSocialPresenceClient.clearPresence()
+                    .onFailure { Timber.tag(TAG).w(it, "Privacy clear failed; closing transport") }
+            } finally {
+                withContext(NonCancellable) { DiscordSocialPresenceClient.close() }
+                lastActivity = null
+                lastSent = null
+                lastSentAtMs = 0L
+                _state.value = PresenceState.Idle
             }
         }
     }

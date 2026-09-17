@@ -45,12 +45,15 @@ object IconHost {
         packageName: String,
     ): String? =
         withContext(Dispatchers.IO) {
+            if (!context.pref(Prefs.IconUploadConsentKey, false)) return@withContext null
             val cached = context.dataStore.data.first()[cacheKey(packageName)]
             if (!cached.isNullOrBlank()) return@withContext cached
 
             val lowRes = context.pref(Prefs.LowResolutionImagesKey, false)
             val png = InstalledApps.iconPng(context, packageName, sizePx = if (lowRes) 128 else 512)
                 ?: return@withContext null
+            // Check again at the upload boundary after icon extraction.
+            if (!context.pref(Prefs.IconUploadConsentKey, false)) return@withContext null
             val url = runCatching { upload(packageName, png) }
                 .onFailure { Timber.tag(TAG).w(it, "icon upload failed for %s", packageName) }
                 .getOrNull() ?: return@withContext null
