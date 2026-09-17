@@ -5,6 +5,8 @@ import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.PrivacyTip
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -14,7 +16,7 @@ import dev.citali.shadowrpc.ui.component.PreferenceEntry
 import dev.citali.shadowrpc.ui.component.ScreenScaffold
 
 @Composable
-fun AboutScreen(onBack: () -> Unit) {
+fun AboutScreen(onBack: () -> Unit, onNavigate: (String) -> Unit) {
     val uriHandler = LocalUriHandler.current
     ScreenScaffold(title = stringResource(R.string.drawer_about), onBack = onBack) {
         PreferenceEntry(
@@ -33,6 +35,18 @@ fun AboutScreen(onBack: () -> Unit) {
             description = stringResource(R.string.about_license_summary),
             icon = Icons.Outlined.Gavel,
             onClick = { runCatching { uriHandler.openUri("https://www.gnu.org/licenses/gpl-3.0.html") } },
+        )
+        PreferenceEntry(
+            title = stringResource(R.string.about_privacy),
+            description = stringResource(R.string.about_privacy_summary),
+            icon = Icons.Outlined.PrivacyTip,
+            onClick = { onNavigate(Routes.PRIVACY) },
+        )
+        PreferenceEntry(
+            title = stringResource(R.string.about_terms),
+            description = stringResource(R.string.about_terms_summary),
+            icon = Icons.Outlined.Description,
+            onClick = { onNavigate(Routes.TERMS) },
         )
         PreferenceEntry(
             title = stringResource(R.string.about_credits),

@@ -111,7 +111,7 @@
     <string name="about_license">Licence</string>
     <string name="about_license_summary">GNU General Public License v3.0</string>
     <string name="about_credits">Credits</string>
-    <string name="about_credits_summary">Discord gateway and OAuth code is shared with LunarTune. UI inspired by Kizzy.</string>
+    <string name="about_credits_summary">Discord gateway and OAuth code originates from LunarTune (GPL-3.0). See source files and repository history for attribution.</string>
 
     <!-- Activity types -->
     <string name="activity_type_playing">Playing</string>
@@ -160,4 +160,10 @@
     <string name="logs_export_failed">Could not export logs. Try another destination.</string>
     <string name="logs_verbose">Verbose logging (temporary)</string>
     <string name="apps_clear_search">Clear app search</string>
+    <string name="about_privacy">Privacy Policy</string>
+    <string name="about_privacy_summary">Data, permissions, sharing and your controls</string>
+    <string name="about_terms">Terms of Use</string>
+    <string name="about_terms_summary">Software licence, third-party services and limitations</string>
+    <string name="legal_loading">Loading document…</string>
+    <string name="legal_load_error">Could not load this document. It is also available in the repository docs folder.</string>
 </resources>

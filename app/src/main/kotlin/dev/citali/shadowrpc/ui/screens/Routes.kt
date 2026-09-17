@@ -7,4 +7,6 @@ object Routes {
     const val DISPLAY = "display"
     const val LOGS = "logs"
     const val ABOUT = "about"
+    const val PRIVACY = "privacy"
+    const val TERMS = "terms"
 }

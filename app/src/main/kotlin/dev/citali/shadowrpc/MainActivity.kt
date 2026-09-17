@@ -51,6 +51,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.citali.shadowrpc.detection.AppDetectionService
 import dev.citali.shadowrpc.ui.screens.AboutScreen
+import dev.citali.shadowrpc.ui.screens.LegalScreen
 import dev.citali.shadowrpc.ui.screens.AccountScreen
 import dev.citali.shadowrpc.ui.screens.DisplayScreen
 import dev.citali.shadowrpc.ui.screens.HomeScreen
@@ -189,7 +190,11 @@ private fun ShadowRpcRoot() {
             composable(Routes.SETTINGS) { SettingsScreen(onBack = { navController.popBackStack() }) }
             composable(Routes.DISPLAY) { DisplayScreen(onBack = { navController.popBackStack() }) }
             composable(Routes.LOGS) { LogsScreen(onBack = { navController.popBackStack() }) }
-            composable(Routes.ABOUT) { AboutScreen(onBack = { navController.popBackStack() }) }
+            composable(Routes.ABOUT) {
+                AboutScreen(onBack = { navController.popBackStack() }, onNavigate = ::navigate)
+            }
+            composable(Routes.PRIVACY) { LegalScreen(privacy = true, onBack = { navController.popBackStack() }) }
+            composable(Routes.TERMS) { LegalScreen(privacy = false, onBack = { navController.popBackStack() }) }
         }
     }
 }

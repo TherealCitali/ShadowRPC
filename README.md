@@ -47,3 +47,10 @@ and can be revoked anytime; ShadowRPC stops itself when it is.
 ## License
 
 GPL-3.0 — see [LICENSE](LICENSE).
+
+
+## Privacy and terms
+
+Read the [Privacy Policy](docs/PRIVACY.md) and [Terms of Use](docs/TERMS.md).
+Both are also available offline inside **About**. The app source remains licensed
+under GPL-3.0; the terms do not restrict rights granted by that licence.
