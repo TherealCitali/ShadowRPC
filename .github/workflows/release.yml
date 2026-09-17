@@ -9,6 +9,10 @@ on:
     paths:
       - 'app/build.gradle.kts'
 
+concurrency:
+  group: stable-release
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -96,8 +100,8 @@ jobs:
           SIGNED="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*-signed.apk' | head -n 1)"
           [ -n "$SIGNED" ] || { echo "signed APK not found"; exit 1; }
           mkdir -p release_out
-          cp "$SIGNED" "release_out/ShadowRPC-v${VERSION}.apk"
-          (cd release_out && sha256sum "ShadowRPC-v${VERSION}.apk" > "ShadowRPC-v${VERSION}.apk.sha256")
+          cp "$SIGNED" "release_out/ShadowRPC-Release-${VERSION}-Universal.apk"
+          (cd release_out && sha256sum "ShadowRPC-Release-${VERSION}-Universal.apk" > "ShadowRPC-Release-${VERSION}-Universal.apk.sha256")
 
       - name: Build changelog
         id: changelog
@@ -116,7 +120,36 @@ jobs:
         with:
           tag_name: v${{ needs.check-version.outputs.new_version }}
           name: v${{ needs.check-version.outputs.new_version }}
+          target_commitish: ${{ github.sha }}
+          draft: false
+          prerelease: false
+          make_latest: true
+          fail_on_unmatched_files: true
           body_path: CHANGELOG_RELEASE.md
           files: |
             release_out/*.apk
             release_out/*.sha256
+
+      # One-time replacement requested for v1.0.0. Preserve the old Git tag/history.
+      # Never remove the old download before the new signed asset is published.
+      - name: Remove superseded v0.1.0 stable release
+        if: needs.check-version.outputs.new_version == '1.0.0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repo = context.repo;
+            const {data: current} = await github.rest.repos.getReleaseByTag({...repo, tag: 'v1.0.0'});
+            if (current.draft || current.prerelease || !current.assets.some(a =>
+                a.name === 'ShadowRPC-Release-1.0.0-Universal.apk' && a.size > 0)) {
+              throw new Error('Refusing cleanup: stable v1.0.0 APK is not published.');
+            }
+            let old;
+            try {
+              ({data: old} = await github.rest.repos.getReleaseByTag({...repo, tag: 'v0.1.0'}));
+            } catch (error) {
+              if (error.status === 404) { core.info('Old release already absent.'); return; }
+              throw error;
+            }
+            if (old.draft || old.prerelease) throw new Error('Old release is not the expected stable release.');
+            await github.rest.repos.deleteRelease({...repo, release_id: old.id});
+            core.info('Removed superseded v0.1.0 release and its assets; retained its Git tag.');
