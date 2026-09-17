@@ -257,3 +257,17 @@ from unexplained service/process termination.
 Pending device checks: export/cancel/provider failure, large buffer, UTF-8 text,
 Clear then export, verbose off/on during gateway traffic, review file before
 sharing. Resource and whitespace checks pass; build/device tests not run here.
+
+## Notification Stop RPC preserves detection settings
+
+Notification Stop now calls PresenceManager.setEnabled(false), serializing with
+in-flight publishing and persisting only RpcEnabledKey. It clears presence and
+the grace session without changing AppDetectionEnabledKey or selected packages.
+The service remains paused with its notification; enabling master RPC resumes
+configured detection. The existing notification action identifier is preserved
+so already-posted notifications receive the corrected behaviour after update.
+The App Detection switch remains the explicit way to disable detection itself.
+
+Static diff/handler checks passed. Pending device checks: Stop RPC while active,
+during background grace and during upload; both on-screen toggles reflect master
+Off / detection unchanged; app selections survive restart; master On resumes.

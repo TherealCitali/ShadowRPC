@@ -52,7 +52,7 @@
     <string name="app_detection_notification_channel">App Detection</string>
     <string name="app_detection_notification_idle">Watching for enabled apps</string>
     <string name="app_detection_notification_active">Sharing: %1$s</string>
-    <string name="app_detection_notification_stop">Stop</string>
+    <string name="app_detection_notification_stop">Stop RPC</string>
     <string name="app_detection_login_required">Sign in with Discord first</string>
     <string name="app_detection_show_icon">Show app icon</string>
     <string name="app_detection_show_icon_summary">Use the app\'s launcher icon as the large image</string>

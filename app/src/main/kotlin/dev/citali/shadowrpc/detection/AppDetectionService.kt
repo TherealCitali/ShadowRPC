@@ -79,10 +79,22 @@ class AppDetectionService : LifecycleService() {
         super.onStartCommand(intent, flags, startId)
         if (intent?.action == ACTION_STOP) {
             lifecycleScope.launch {
-                setPref(Prefs.AppDetectionEnabledKey, false)
-                stopSelf()
+                try {
+                    // Notification Stop controls RPC, not the saved detection configuration.
+                    PresenceManager.setEnabled(this@AppDetectionService, false)
+                    sharedPackage = null
+                    backgroundSinceElapsed = null
+                    updateNotification(getString(R.string.rpc_paused))
+                    if (_running.value && pollJob?.isActive != true) {
+                        pollJob = lifecycleScope.launch { pollLoop() }
+                    }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    Timber.tag(TAG).e(error, "Could not pause RPC from notification")
+                }
             }
-            return START_NOT_STICKY
+            return START_STICKY
         }
         if (!_running.value) return START_NOT_STICKY
         if (pollJob?.isActive != true) pollJob = lifecycleScope.launch { pollLoop() }
