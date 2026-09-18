@@ -3,7 +3,6 @@ package dev.citali.shadowrpc.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import dev.citali.shadowrpc.ui.theme.themeShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -47,11 +46,11 @@ fun AppOptionsDialog(app: InstalledApp, initialLabel: String, initiallyEnabled: 
     val inherit = stringResource(R.string.app_options_inherit)
 
     Dialog(onDismissRequest = { if (!saving) onDismiss() }) {
-        Surface(shape = themeShape(32.dp), color = MaterialTheme.colorScheme.surfaceContainer) {
+        Surface(shape = RoundedCornerShape(32.dp), color = MaterialTheme.colorScheme.surfaceContainer) {
             Column(Modifier.fillMaxWidth().heightIn(max = maxHeight).imePadding()) {
-                Surface(shape = themeShape(32.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+                Surface(shape = RoundedCornerShape(32.dp), color = MaterialTheme.colorScheme.primaryContainer) {
                     Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        bitmap?.let { Image(it, null, Modifier.size(52.dp).clip(themeShape(18.dp))) }
+                        bitmap?.let { Image(it, null, Modifier.size(52.dp).clip(RoundedCornerShape(18.dp))) }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(stringResource(R.string.app_options), style = MaterialTheme.typography.headlineSmall)
@@ -119,14 +118,14 @@ fun AppOptionsDialog(app: InstalledApp, initialLabel: String, initiallyEnabled: 
 
 @Composable
 private fun OptionCard(content: @Composable () -> Unit) {
-    Surface(shape = themeShape(24.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) { content() }
+    Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) { content() }
 }
 
 @Composable
 private fun OptionPicker(title: String, value: String?, choices: List<Pair<String?, String>>, enabled: Boolean, onSelect: (String?) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box {
-        Surface(onClick = { expanded = true }, enabled = enabled, shape = themeShape(24.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+        Surface(onClick = { expanded = true }, enabled = enabled, shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
             Column(Modifier.fillMaxWidth().padding(16.dp)) {
                 Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(choices.firstOrNull { it.first == value }?.second.orEmpty(), color = MaterialTheme.colorScheme.primary)

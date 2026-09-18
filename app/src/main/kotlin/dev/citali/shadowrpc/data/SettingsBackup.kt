@@ -8,9 +8,9 @@ import org.json.JSONObject
 
 /** Explicit allow-list: never serializes accounts, tokens, consent, caches or running state. */
 object SettingsBackup {
-    private val booleans = listOf(Prefs.MiuixMonetKey, Prefs.ClearOnLockKey, Prefs.AppDetectionShowIconKey, Prefs.AppDetectionTimestampsKey,
+    private val booleans = listOf(Prefs.ClearOnLockKey, Prefs.AppDetectionShowIconKey, Prefs.AppDetectionTimestampsKey,
         Prefs.LowResolutionImagesKey, Prefs.PureBlackKey, Prefs.DynamicColorKey)
-    private val strings = listOf(Prefs.ThemePresetKey, Prefs.DarkModeKey, Prefs.ActivityTypeKey, Prefs.ActivityStatusKey,
+    private val strings = listOf(Prefs.DarkModeKey, Prefs.ActivityTypeKey, Prefs.ActivityStatusKey,
         Prefs.ActivityNameSourceKey, Prefs.ActivityDetailsSourceKey, Prefs.ActivityStateSourceKey,
         Prefs.ActivityNameCustomKey, Prefs.ActivityDetailsCustomKey, Prefs.ActivityStateCustomKey,
         Prefs.AppLabelOverridesKey, Prefs.AppPresenceOverridesKey, Prefs.CustomApplicationIdKey)
@@ -23,7 +23,6 @@ object SettingsBackup {
         val values = JSONObject()
         booleans.forEach { key -> p[key]?.let { values.put(key.name, it) } }
         strings.forEach { key -> p[key]?.let { values.put(key.name, it) } }
-        if (values.optString(Prefs.ThemePresetKey.name) == "MANGA") values.put(Prefs.ThemePresetKey.name, "MIUI")
         p[Prefs.SeedColorKey]?.let { values.put(Prefs.SeedColorKey.name, it) }
         p[Prefs.BackgroundGraceSecondsKey]?.let { values.put(Prefs.BackgroundGraceSecondsKey.name, it) }
         values.put(Prefs.AppDetectionPackagesKey.name, JSONArray(p[Prefs.AppDetectionPackagesKey].orEmpty().toList()))
@@ -64,9 +63,6 @@ object SettingsBackup {
         fun checkChoice(key: Preferences.Key<String>, choices: Set<String>) {
             if (values.has(key.name)) require(values.getString(key.name) in choices)
         }
-        // Old backups remain usable, but cannot re-enable the removed theme.
-        if (values.optString(Prefs.ThemePresetKey.name) == "MANGA") values.put(Prefs.ThemePresetKey.name, "MIUI")
-        checkChoice(Prefs.ThemePresetKey, setOf("MATERIAL_YOU", "MIUI"))
         checkChoice(Prefs.DarkModeKey, setOf("AUTO", "ON", "OFF"))
         checkChoice(Prefs.ActivityTypeKey, setOf("PLAYING", "LISTENING", "WATCHING", "COMPETING"))
         checkChoice(Prefs.ActivityStatusKey, setOf("online", "idle", "dnd"))

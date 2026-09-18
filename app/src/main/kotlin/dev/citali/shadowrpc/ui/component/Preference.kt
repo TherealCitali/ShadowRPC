@@ -1,6 +1,5 @@
 package dev.citali.shadowrpc.ui.component
 
-import dev.citali.shadowrpc.ui.theme.*
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import dev.citali.shadowrpc.ui.theme.themeShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
@@ -145,7 +143,7 @@ fun MasterSwitchCard(
     Surface(
         onClick = { if (enabled) onCheckedChange(!checked) },
         enabled = enabled,
-        shape = themeShape(28.dp),
+        shape = RoundedCornerShape(28.dp),
         color = if (checked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
         modifier = Modifier
             .fillMaxWidth()
@@ -173,7 +171,7 @@ fun MasterSwitchCard(
 @Composable
 fun PreferenceCard(content: @Composable () -> Unit) {
     Surface(
-        shape = themeShape(32.dp),
+        shape = RoundedCornerShape(32.dp),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
     ) {
@@ -186,10 +184,6 @@ fun PreferenceCard(content: @Composable () -> Unit) {
 /** Material switch with the reference design's checked/unchecked thumb symbols. */
 @Composable
 fun ExpressiveSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit, enabled: Boolean = true) {
-    if (LocalThemeTokens.current.miui) {
-        top.yukonga.miuix.kmp.basic.Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
-        return
-    }
     Switch(
         checked = checked,
         onCheckedChange = onCheckedChange,
@@ -214,13 +208,12 @@ fun GroupedPreferenceCard(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val tokens = LocalThemeTokens.current
     Surface(
         shape = RoundedCornerShape(
-            topStart = tokens.corner(if (first) 28.dp else 4.dp),
-            topEnd = tokens.corner(if (first) 28.dp else 4.dp),
-            bottomStart = tokens.corner(if (last) 28.dp else 4.dp),
-            bottomEnd = tokens.corner(if (last) 28.dp else 4.dp),
+            topStart = if (first) 28.dp else 4.dp,
+            topEnd = if (first) 28.dp else 4.dp,
+            bottomStart = if (last) 28.dp else 4.dp,
+            bottomEnd = if (last) 28.dp else 4.dp,
         ),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         modifier = modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 1.dp),

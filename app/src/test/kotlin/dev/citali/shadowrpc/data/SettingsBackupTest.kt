@@ -37,27 +37,31 @@ class SettingsBackupTest {
         assertEquals(setOf("com.example.app"), prefs[Prefs.AppDetectionPackagesKey])
     }
 
-    @Test fun themePreferencesRoundTripAndRejectUnknownValues() {
-        val original = mutablePreferencesOf(Prefs.ThemePresetKey to "MIUI", Prefs.MiuixMonetKey to true)
+    @Test fun materialAppearanceRoundTrips() {
+        val original = mutablePreferencesOf(Prefs.DarkModeKey to "ON", Prefs.PureBlackKey to true,
+            Prefs.DynamicColorKey to false, Prefs.SeedColorKey to 0xFFB69DF8L)
         val restored = mutablePreferencesOf()
         SettingsBackup.applyTo(restored, SettingsBackup.encode(original))
         original.asMap().forEach { (key, value) -> assertEquals(value, restored.asMap()[key]) }
-        assertTrue(runCatching { SettingsBackup.validate(backup(JSONObject().put("themePreset", "INVALID"))) }.isFailure)
-        assertTrue(runCatching { SettingsBackup.validate(backup(JSONObject().put("miuixMonet", "yes"))) }.isFailure)
     }
 
-    @Test fun removedMangaMigratesWithoutChangingRuntimeOrAccountState() {
-        assertEquals(ThemePreset.MIUI, ThemePreset.fromStored("MANGA"))
-        assertEquals(ThemePreset.MATERIAL_YOU, ThemePreset.fromStored("UNKNOWN"))
-        val prefs = mutablePreferencesOf(Prefs.RpcEnabledKey to false, Prefs.DiscordTokenKey to "original")
-        SettingsBackup.applyTo(prefs, backup(JSONObject().put("themePreset", "MANGA")
-            .put("mangaPaper", "NORD").put("mangaAccent", "FROST").put("themeDecorations", true)))
-        assertEquals("MIUI", prefs[Prefs.ThemePresetKey])
-        assertEquals(false, prefs[Prefs.RpcEnabledKey])
-        assertEquals("original", prefs[Prefs.DiscordTokenKey])
-        assertFalse(prefs.asMap().keys.any { it.name in setOf("mangaPaper", "mangaAccent", "themeDecorations") })
-        val legacyExport = SettingsBackup.validate(SettingsBackup.encode(mutablePreferencesOf(Prefs.ThemePresetKey to "MANGA")))
-        assertEquals("MIUI", legacyExport.getString("themePreset"))
+    @Test fun retiredThemesCannotReturnThroughBackups() {
+        listOf("MIUI", "MANGA").forEach { oldTheme ->
+            val prefs = mutablePreferencesOf(Prefs.RpcEnabledKey to false, Prefs.DiscordTokenKey to "original",
+                Prefs.DarkModeKey to "ON", Prefs.SeedColorKey to 0xFFB69DF8L,
+                stringPreferencesKey("themePreset") to oldTheme, booleanPreferencesKey("miuixMonet") to true)
+            val exported = SettingsBackup.encode(prefs)
+            assertFalse(exported.contains("themePreset"))
+            assertFalse(exported.contains("miuixMonet"))
+            RetiredThemeSettings.clear(prefs)
+            SettingsBackup.applyTo(prefs, backup(JSONObject().put("themePreset", oldTheme)
+                .put("miuixMonet", true).put("mangaPaper", "NORD").put("themeDecorations", true)))
+            assertEquals(false, prefs[Prefs.RpcEnabledKey])
+            assertEquals("original", prefs[Prefs.DiscordTokenKey])
+            assertEquals("ON", prefs[Prefs.DarkModeKey])
+            assertEquals(0xFFB69DF8L, prefs[Prefs.SeedColorKey])
+            assertFalse(prefs.asMap().keys.any { it.name in setOf("themePreset", "miuixMonet", "mangaPaper", "themeDecorations") })
+        }
     }
 
     @Test fun malformedSettingsFailBeforeMutation() {

@@ -74,17 +74,3 @@ suspend fun <T> Context.setPref(
 ) {
     dataStore.edit { it[key] = value }
 }
-
-/** Resolve retired Manga selections immediately, then persist MIUI without resetting other settings. */
-@Composable
-fun rememberThemePreset(): PreferenceState<ThemePreset> {
-    val raw = rememberPreference(Prefs.ThemePresetKey, ThemePreset.MATERIAL_YOU.name)
-    androidx.compose.runtime.LaunchedEffect(raw.value) {
-        if (raw.value == "MANGA") raw.set(ThemePreset.MIUI.name)
-    }
-    return remember(raw) {
-        PreferenceState(object : State<ThemePreset> {
-            override val value get() = ThemePreset.fromStored(raw.value)
-        }, set = { raw.set(it.name) })
-    }
-}

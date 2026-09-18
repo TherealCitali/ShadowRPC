@@ -22,7 +22,7 @@ ShadowRPC turns your selected foreground apps into Discord activity. Pick what b
 
 **No bot setup. No pasted Discord user tokens.** Sign in through Discord OAuth2 with PKCE; ShadowRPC uses that scoped session to publish your activity.
 
-> **Release note:** This README describes current `main`. MIUI is available in newer prereleases; the original stable **v1.0.0** does not include them yet.
+> **Release note:** This README describes current `main`. Miuix elastic overscroll is available in newer prereleases; the original stable **v1.0.0** does not include it.
 
 ## A presence that feels like you
 
@@ -36,18 +36,15 @@ ShadowRPC turns your selected foreground apps into Discord activity. Pick what b
 
 Turning master RPC **Off** stops the watcher and removes its notification. Your selected apps and detection preference stay saved.
 
-## Two looks. One ShadowRPC.
+## Material You, with a little bounce
 
-| 🌗 Material You | ✨ MIUI / Miuix |
-| :--- | :--- |
-| Expressive colors with wallpaper or custom seed palettes. | Native Miuix light/dark palettes with optional Monet. |
-| Familiar rounded surfaces and pure-black mode. | Rounded groups, actual Miuix switches, and theme-controller integration. |
+Wallpaper colors on Android 12+, custom seed palettes, light/dark/system modes, and pure-black backgrounds. **Montserrat stays throughout.**
 
-Switch in **Appearance → Theme preset**. **Montserrat stays throughout.**
+The interface uses Material You only. Miuix contributes just the **elastic edge-overscroll animation** to Compose scrolling areas—no MIUI colors, switches, cards, or theme selector. Manga is also removed.
 
-Manga has been removed: existing Manga selections and older backups automatically resolve to MIUI. Its paper grid, ink outlines and hard shadows no longer render.
+Existing seed/dark-mode preferences stay saved. Retired theme choices are ignored and cleared; importing an older backup cannot bring those themes back.
 
-[Explore the theme engines, adaptations, and source credits →](docs/THEMES.md)
+[Appearance and overscroll implementation notes →](docs/THEMES.md)
 
 ## A look inside
 
@@ -60,7 +57,7 @@ Manga has been removed: existing Manga selections and older backups automaticall
 
 <p align="center"><sub>Activity settings · Live preview · App detection · Per-app customization</sub></p>
 
-<sub>Screenshots are from earlier builds; current layouts and popup headers may differ. They do not show the MIUI preset. <a href="assets/screenshot/">Browse all screenshots.</a></sub>
+<sub>Screenshots are from earlier builds; current layouts and popup headers may differ. <a href="assets/screenshot/">Browse all screenshots.</a></sub>
 
 ## Get started
 
@@ -121,8 +118,7 @@ After a successful prerelease publication, the workflow keeps the five newest pu
 **Kotlin · Jetpack Compose · Material 3 · DataStore · Discord OAuth2**
 
 - **[LunarTune](https://github.com/cognitiveshadows03/LunarTune)** — Discord gateway and OAuth code, GPL-3.0.
-- **[InstallerX Revived](https://github.com/wxxsfxyzm/InstallerX-Revived)** — MIUI theme routing, GPL-3.0.
-- **[Miuix](https://github.com/miuix-kotlin-multiplatform/miuix)** — Miuix theme engine and components, Apache-2.0.
+- **[Miuix](https://github.com/miuix-kotlin-multiplatform/miuix)** — elastic overscroll, Apache-2.0.
 - **The Montserrat Project Authors** — bundled Montserrat fonts, SIL Open Font License 1.1. [Font notes](docs/FONTS.md).
 - **TherealCitali** — ShadowRPC icon artwork. [Originals](assets/) · [Asset notes](docs/ICON_ASSETS.md).
 

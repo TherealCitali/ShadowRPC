@@ -1,48 +1,31 @@
-# Theme engines and presets
+# Material You and elastic overscroll
 
-Appearance offers **Material You** and **MIUI / Miuix**. Montserrat and the existing MIUI controller/components are retained. Existing Material You and MIUI preferences are unchanged.
+ShadowRPC uses **Material You only**. There is no theme-preset selector, MIUI palette/controller, Miuix switch, or Manga rendering path. Montserrat, the original rounded Material surfaces, expressive controls, seed colors, Android 12+ wallpaper colors, dark/system mode and pure black are retained.
 
-## Removal and migration
+## The one Miuix behavior retained
 
-The Manga preset has been removed, including paper palettes, grid rendering, hard shadows, ink borders and settings. Legacy stored `MANGA` values resolve to MIUI immediately, then persist as `MIUI`; old backups also map to MIUI. Old paper/accent/decoration fields are ignored and no longer exported. The migration changes only theme selection, not RPC, detection, accounts or saved apps.
+`ShadowRpcTheme` provides the actual Miuix `MiuixOverscrollFactory` through Compose Foundation’s `LocalOverscrollFactory`. This supplies spring-based edge elasticity to default Compose scrollable components such as the Home app list, settings’ vertical scrolling, and the horizontal color picker. Each scrollable creates its own effect; no additional nested-scroll modifier is layered on top. Existing sheet entrance behavior is unchanged.
 
-## Engines
+The app does **not** wrap content in `MiuixTheme` or install its colors, typography, shapes, controls, overscroll-unrelated indications, or Monet controller. The `miuix-ui-android:0.9.3` dependency remains because the upstream factory lives in that module. Release shrinking can remove unreachable library code; the entire dependency is not claimed to be removed.
 
-- **Material You:** MaterialKolor seed colors, optional Android 12+ wallpaper colors, dark/system mode and pure black.
-- **MIUI / Miuix:** InstallerX-derived routing backed by Miuix 0.9.3. Native light/dark palette by default, optional Monet using saved seed colors or Android 12+ wallpaper colors. Actual Miuix switches and a color-role bridge for the existing Material screens. Rounded group radii remain 16dp.
+No new background work or service is introduced. These are foreground scroll interactions, not a solution for Android low-memory process kills.
 
-Both preserve live navigation state when switching. No new UI libraries or additional presets have been added during Manga removal.
+## Upgrade and backup compatibility
 
-## Source provenance and licenses
+- On theme composition, remove only retired settings: `themePreset`, `miuixMonet`, `mangaPaper`, `mangaAccent`, `themeDecorations`.
+- Preserve the existing Material seed, dynamic-color flag, dark mode and pure-black choice, as well as every account/RPC/detection preference.
+- Older backups remain accepted. Retired keys are ignored via the existing allow-list and no longer exported, so they cannot restore a deleted theme.
 
-### Removed Manga theme (historical provenance)
+## Sources and licenses
 
-The Komi Store Manga preset and its ported renderer/palette files have been removed at the user's request. Historical source: https://github.com/komi-store/komi-store at `e26fb15f88293df0df06fc1c03414a4f8dbbacd7`. Its Apache-2.0 license remains bundled for provenance; there is no active Manga theme.
+Retained overscroll: https://github.com/miuix-kotlin-multiplatform/miuix, version `v0.9.3`, commit `c36fab72391801d1e3ea5a00f966bf16bac28d4c`.
 
-### InstallerX Revived (GPL-3.0-only)
+Implementation inspected: `miuix-ui/src/commonMain/kotlin/top/yukonga/miuix/kmp/utils/OverscrollFactory.kt` (spring physics shared with the library’s scrolling utilities).
 
-Repository: https://github.com/wxxsfxyzm/InstallerX-Revived
+Copyright 2025, compose-miuix-ui contributors. Apache-2.0; bundled at `app/src/main/assets/licenses/Miuix-Apache-2.0.txt`.
 
-Revision: `8ede27250d04b73631b59464724c240378406cdd`
-
-Copyright (C) 2025–2026 InstallerX Revived contributors.
-
-`app/src/main/java/com/rosan/installer/ui/theme/InstallerTheme.kt` and `Shape.kt`: default/Monet routing, theme controller selection, movable-content preservation and segmented-card concept adapted into `Theme.kt` and `ThemeEngine.kt`. ShadowRPC retains its own DataStore keys, Material UI, Montserrat, default motion and MaterialKolor setup. Installer-specific view models/pages, blur, color-spec chooser and animated color interpolation are not imported.
-
-Bundled license: `app/src/main/assets/licenses/InstallerX-Revived-GPL-3.0.txt`.
-
-### Miuix (Apache-2.0)
-
-Repository: https://github.com/miuix-kotlin-multiplatform/miuix
-
-Dependency: `top.yukonga.miuix.kmp:miuix-ui-android:0.9.3` (core/squircle transitively).
-
-Source inspected at `v0.9.3`, commit `c36fab72391801d1e3ea5a00f966bf16bac28d4c`.
-
-Copyright 2025, compose-miuix-ui contributors.
-
-Bundled license: `app/src/main/assets/licenses/Miuix-Apache-2.0.txt`.
+Historical provenance for removed theme ports: Komi Store at `e26fb15f88293df0df06fc1c03414a4f8dbbacd7` (Apache-2.0), InstallerX Revived at `8ede27250d04b73631b59464724c240378406cdd` (GPL-3.0-only, Copyright 2025–2026 InstallerX Revived contributors). Their license copies remain bundled for provenance; their presets are no longer active.
 
 ## Validation
 
-Regression tests cover Material/MIUI round-trips and retired Manga selections/backups mapping to MIUI without changing account or running-state preferences. Unknown preset values in backups still fail validation; obsolete Manga-only fields are ignored and no longer exported. Device checks remain necessary for theme switching, restart, dark/system/pure-black mode and legacy imports. No memory-kill workaround is implied.
+Regression tests cover Material appearance round-trips, cleanup of retired settings, and legacy MIUI/Manga imports without account/runtime-state changes. Static checks verify that the only remaining Miuix API referenced by the app is the overscroll factory. CI build/signing and tests are checked separately. Device checks remain needed: overscroll at both ends of Home and Settings, horizontal seed picker, sheet scrolling/dismissal, rapid flings, nested scroll handling and API 29 behavior.

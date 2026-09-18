@@ -101,6 +101,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
+    // Only MiuixOverscrollFactory is used; no Miuix theme or controls.
     implementation(libs.miuix.ui)
     implementation(libs.core.ktx)
     implementation(libs.splashscreen)

@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import dev.citali.shadowrpc.ui.theme.themeShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DarkMode
@@ -46,8 +45,6 @@ import androidx.compose.ui.unit.dp
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamicColorScheme
 import dev.citali.shadowrpc.R
-import dev.citali.shadowrpc.data.ThemePreset
-import dev.citali.shadowrpc.data.rememberThemePreset
 import dev.citali.shadowrpc.data.DarkMode
 import dev.citali.shadowrpc.data.Prefs
 import dev.citali.shadowrpc.data.rememberEnumPreference
@@ -63,15 +60,12 @@ fun DisplayScreen(onBack: () -> Unit) {
     val (pureBlack, setPureBlack) = rememberPreference(Prefs.PureBlackKey, false)
     val (dynamicColor, setDynamicColor) = rememberPreference(Prefs.DynamicColorKey, Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
     val (seed, setSeed) = rememberPreference(Prefs.SeedColorKey, SeedColors.first().toArgb().toLong())
-    val (preset) = rememberThemePreset()
-    val (monet) = rememberPreference(Prefs.MiuixMonetKey, false)
-    val supportsSeed = preset == ThemePreset.MATERIAL_YOU || (preset == ThemePreset.MIUI && monet)
     var darkDialog by remember { mutableStateOf(false) }
 
     ScreenScaffold(title = stringResource(R.string.drawer_display), onBack = onBack) {
         // Preview card, like the illustration panel in the screenshot
         Surface(
-            shape = themeShape(28.dp),
+            shape = RoundedCornerShape(28.dp),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             modifier = Modifier
                 .fillMaxWidth()
@@ -84,9 +78,7 @@ fun DisplayScreen(onBack: () -> Unit) {
         }
         Spacer(Modifier.height(24.dp))
 
-        ThemePresetSettings()
-        Spacer(Modifier.height(20.dp))
-        if (supportsSeed) LazyRow(
+        LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp),
         ) {
@@ -100,7 +92,7 @@ fun DisplayScreen(onBack: () -> Unit) {
         }
         Spacer(Modifier.height(20.dp))
 
-        if (supportsSeed && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             SwitchPreference(
                 title = stringResource(R.string.display_dynamic_color),
                 description = stringResource(R.string.display_dynamic_color_summary),
@@ -168,7 +160,7 @@ private fun SeedSwatch(
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val scheme = remember(color, isDark) { dynamicColorScheme(seedColor = color, isDark = isDark, style = PaletteStyle.TonalSpot) }
     Surface(
-        shape = themeShape(20.dp),
+        shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = Modifier
             .size(84.dp)
@@ -227,7 +219,7 @@ private fun SeedSwatch(
 @Composable
 private fun ThemePreviewArt() {
     Surface(
-        shape = themeShape(24.dp),
+        shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surface,
         modifier = Modifier.padding(20.dp).fillMaxWidth(),
     ) {
