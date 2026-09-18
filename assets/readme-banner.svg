@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="300" viewBox="0 0 1040 300" role="img" aria-labelledby="title desc">
+  <title id="title">ShadowRPC — Your phone. Your presence.</title>
+  <desc id="desc">Lavender lettering on a dark background beside an illustrative activity card. Choose what you share, control when it appears.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#111018"/><stop offset="1" stop-color="#241834"/></linearGradient>
+    <linearGradient id="accent"><stop stop-color="#dccdff"/><stop offset="1" stop-color="#aa83ef"/></linearGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#bca4ff" opacity=".13"/></pattern>
+  </defs>
+  <rect width="1040" height="300" rx="26" fill="url(#bg)"/>
+  <rect width="1040" height="300" rx="26" fill="url(#grid)"/>
+  <circle cx="875" cy="135" r="130" fill="none" stroke="#bca4ff" stroke-opacity=".1"/>
+  <circle cx="875" cy="135" r="105" fill="none" stroke="#bca4ff" stroke-opacity=".08"/>
+  <g font-family="Montserrat, system-ui, sans-serif">
+    <text x="48" y="54" fill="#bca4ff" font-size="13" font-weight="700" letter-spacing="4">SHADOWRPC / ANDROID</text>
+    <text x="44" y="119" fill="#f6f0ff" font-size="48" font-weight="750">Your phone.</text>
+    <text x="44" y="175" fill="url(#accent)" font-size="48" font-weight="750">Your presence.</text>
+    <text x="48" y="221" fill="#c5bdcf" font-size="17">Choose what you share. Control when it appears.</text>
+    <rect x="48" y="248" width="7" height="7" rx="3.5" fill="#73e2bb"/>
+    <text x="66" y="256" fill="#aaa0b8" font-size="12" letter-spacing="1.5">OPEN SOURCE · ON YOUR TERMS</text>
+    <rect x="637" y="82" width="349" height="145" rx="22" fill="#191522" stroke="#493859"/>
+    <text x="660" y="111" fill="#afa1c1" font-size="11" font-weight="700" letter-spacing="2">A LITTLE MORE YOU</text>
+    <rect x="660" y="133" width="57" height="57" rx="16" fill="#302343"/>
+    <path d="M688.5 145L702 161.5L688.5 178L675 161.5Z" fill="#c4a5fb"/>
+    <text x="734" y="151" fill="#f2eafa" font-size="17" font-weight="600">Your next adventure</text>
+    <text x="734" y="174" fill="#afa1c1" font-size="13">One app. Your chosen activity.</text>
+    <text x="660" y="210" fill="#83778f" font-size="10" letter-spacing="1">ILLUSTRATIVE PREVIEW</text>
+  </g>
+</svg>
