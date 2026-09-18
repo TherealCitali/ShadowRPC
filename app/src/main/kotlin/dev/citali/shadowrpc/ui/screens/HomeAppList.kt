@@ -1,7 +1,5 @@
 package dev.citali.shadowrpc.ui.screens
 
-import dev.citali.shadowrpc.ui.theme.themePaper
-import dev.citali.shadowrpc.ui.theme.themeBorder
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.provider.Settings
@@ -155,7 +153,7 @@ fun HomeAppList(
         }
     }
 
-    LazyColumn(modifier = modifier.themePaper(), contentPadding = PaddingValues(bottom = 32.dp)) {
+    LazyColumn(modifier = modifier, contentPadding = PaddingValues(bottom = 32.dp)) {
         item(key = "home_header") { Column { header() } }
         item(key = "detection_controls") {
             Column {
@@ -217,7 +215,6 @@ fun HomeAppList(
             item {
                 Card(
                     shape = themeShape(28.dp),
-                    border = themeBorder(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
                     modifier = Modifier
                         .fillMaxWidth()

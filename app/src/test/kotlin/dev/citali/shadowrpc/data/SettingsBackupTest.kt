@@ -38,15 +38,26 @@ class SettingsBackupTest {
     }
 
     @Test fun themePreferencesRoundTripAndRejectUnknownValues() {
-        val original = mutablePreferencesOf(Prefs.ThemePresetKey to "MANGA", Prefs.MangaPaperKey to "NORD",
-            Prefs.MangaAccentKey to "FROST", Prefs.ThemeDecorationsKey to false, Prefs.MiuixMonetKey to true)
+        val original = mutablePreferencesOf(Prefs.ThemePresetKey to "MIUI", Prefs.MiuixMonetKey to true)
         val restored = mutablePreferencesOf()
         SettingsBackup.applyTo(restored, SettingsBackup.encode(original))
         original.asMap().forEach { (key, value) -> assertEquals(value, restored.asMap()[key]) }
-        listOf("themePreset", "mangaPaper", "mangaAccent").forEach { key ->
-            assertTrue(runCatching { SettingsBackup.validate(backup(JSONObject().put(key, "INVALID"))) }.isFailure)
-        }
+        assertTrue(runCatching { SettingsBackup.validate(backup(JSONObject().put("themePreset", "INVALID"))) }.isFailure)
         assertTrue(runCatching { SettingsBackup.validate(backup(JSONObject().put("miuixMonet", "yes"))) }.isFailure)
+    }
+
+    @Test fun removedMangaMigratesWithoutChangingRuntimeOrAccountState() {
+        assertEquals(ThemePreset.MIUI, ThemePreset.fromStored("MANGA"))
+        assertEquals(ThemePreset.MATERIAL_YOU, ThemePreset.fromStored("UNKNOWN"))
+        val prefs = mutablePreferencesOf(Prefs.RpcEnabledKey to false, Prefs.DiscordTokenKey to "original")
+        SettingsBackup.applyTo(prefs, backup(JSONObject().put("themePreset", "MANGA")
+            .put("mangaPaper", "NORD").put("mangaAccent", "FROST").put("themeDecorations", true)))
+        assertEquals("MIUI", prefs[Prefs.ThemePresetKey])
+        assertEquals(false, prefs[Prefs.RpcEnabledKey])
+        assertEquals("original", prefs[Prefs.DiscordTokenKey])
+        assertFalse(prefs.asMap().keys.any { it.name in setOf("mangaPaper", "mangaAccent", "themeDecorations") })
+        val legacyExport = SettingsBackup.validate(SettingsBackup.encode(mutablePreferencesOf(Prefs.ThemePresetKey to "MANGA")))
+        assertEquals("MIUI", legacyExport.getString("themePreset"))
     }
 
     @Test fun malformedSettingsFailBeforeMutation() {

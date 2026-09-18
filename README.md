@@ -22,7 +22,7 @@ ShadowRPC turns your selected foreground apps into Discord activity. Pick what b
 
 **No bot setup. No pasted Discord user tokens.** Sign in through Discord OAuth2 with PKCE; ShadowRPC uses that scoped session to publish your activity.
 
-> **Release note:** This README describes current `main`. Manga and MIUI presets are available in newer prereleases; the original stable **v1.0.0** does not include them yet.
+> **Release note:** This README describes current `main`. MIUI is available in newer prereleases; the original stable **v1.0.0** does not include them yet.
 
 ## A presence that feels like you
 
@@ -36,14 +36,16 @@ ShadowRPC turns your selected foreground apps into Discord activity. Pick what b
 
 Turning master RPC **Off** stops the watcher and removes its notification. Your selected apps and detection preference stay saved.
 
-## Three looks. One ShadowRPC.
+## Two looks. One ShadowRPC.
 
-| 🌗 Material You | 🖋 Manga | ✨ MIUI / Miuix |
-| :--- | :--- | :--- |
-| Expressive colors with wallpaper or custom seed palettes. | Warm paper, dark ink, or cool Nord tones. | Native Miuix light/dark palettes with optional Monet. |
-| Familiar rounded surfaces and pure-black mode. | Square ink panels, hard shadows, five accents, and an optional paper grid. | Rounded groups, actual Miuix switches, and theme-controller integration. |
+| 🌗 Material You | ✨ MIUI / Miuix |
+| :--- | :--- |
+| Expressive colors with wallpaper or custom seed palettes. | Native Miuix light/dark palettes with optional Monet. |
+| Familiar rounded surfaces and pure-black mode. | Rounded groups, actual Miuix switches, and theme-controller integration. |
 
-Switch in **Appearance → Theme preset**. **Montserrat stays throughout.** The Manga grid is static, and no blur or continuously animated wallpaper is added.
+Switch in **Appearance → Theme preset**. **Montserrat stays throughout.**
+
+Manga has been removed: existing Manga selections and older backups automatically resolve to MIUI. Its paper grid, ink outlines and hard shadows no longer render.
 
 [Explore the theme engines, adaptations, and source credits →](docs/THEMES.md)
 
@@ -58,7 +60,7 @@ Switch in **Appearance → Theme preset**. **Montserrat stays throughout.** The 
 
 <p align="center"><sub>Activity settings · Live preview · App detection · Per-app customization</sub></p>
 
-<sub>Screenshots are from earlier builds; current layouts and popup headers may differ. They do not show the new Manga or MIUI presets. <a href="assets/screenshot/">Browse all screenshots.</a></sub>
+<sub>Screenshots are from earlier builds; current layouts and popup headers may differ. They do not show the MIUI preset. <a href="assets/screenshot/">Browse all screenshots.</a></sub>
 
 ## Get started
 
@@ -119,7 +121,6 @@ After a successful prerelease publication, the workflow keeps the five newest pu
 **Kotlin · Jetpack Compose · Material 3 · DataStore · Discord OAuth2**
 
 - **[LunarTune](https://github.com/cognitiveshadows03/LunarTune)** — Discord gateway and OAuth code, GPL-3.0.
-- **[Komi Store](https://github.com/komi-store/komi-store)** — Manga palettes and personality styling, Apache-2.0.
 - **[InstallerX Revived](https://github.com/wxxsfxyzm/InstallerX-Revived)** — MIUI theme routing, GPL-3.0.
 - **[Miuix](https://github.com/miuix-kotlin-multiplatform/miuix)** — Miuix theme engine and components, Apache-2.0.
 - **The Montserrat Project Authors** — bundled Montserrat fonts, SIL Open Font License 1.1. [Font notes](docs/FONTS.md).

@@ -111,7 +111,7 @@
     <string name="about_license">Licence</string>
     <string name="about_license_summary">GNU General Public License v3.0</string>
     <string name="about_credits">Credits</string>
-    <string name="about_credits_summary">Discord gateway and OAuth code originates from LunarTune (GPL-3.0). ShadowRPC icon artwork by TherealCitali. See source files and repository history for attribution. Manga palette and styling adapted from Komi Store (Apache-2.0). MIUI theme routing adapted from InstallerX Revived (GPL-3.0), using Miuix (Apache-2.0). Montserrat font by The Montserrat Project Authors (SIL Open Font License 1.1).</string>
+    <string name="about_credits_summary">Discord gateway and OAuth code originates from LunarTune (GPL-3.0). ShadowRPC icon artwork by TherealCitali. See source files and repository history for attribution. MIUI theme routing adapted from InstallerX Revived (GPL-3.0), using Miuix (Apache-2.0). Montserrat font by The Montserrat Project Authors (SIL Open Font License 1.1).</string>
 
     <!-- Activity types -->
     <string name="activity_type_playing">Playing</string>
@@ -202,24 +202,8 @@
     <string name="theme_preset">Theme preset</string>
     <string name="theme_material">Material You</string>
     <string name="theme_material_summary">Original expressive theme with wallpaper or seed colours</string>
-    <string name="theme_manga">Manga</string>
-    <string name="theme_manga_summary">Komi paper palettes, square ink panels and hard shadows</string>
     <string name="theme_miui">MIUI / Miuix</string>
     <string name="theme_miui_summary">InstallerX-style Miuix engine, rounded groups and Miuix switches</string>
-    <string name="theme_manga_options">Manga styling</string>
-    <string name="theme_paper">Paper palette</string>
-    <string name="theme_paper_auto">Follow dark-mode setting</string>
-    <string name="theme_paper_day">Day — warm paper</string>
-    <string name="theme_paper_night">Night — dark ink</string>
-    <string name="theme_paper_nord">Nord — cool dark paper</string>
-    <string name="theme_accent">Ink accent</string>
-    <string name="theme_accent_mono">Monochrome</string>
-    <string name="theme_accent_crimson">Crimson</string>
-    <string name="theme_accent_cobalt">Cobalt</string>
-    <string name="theme_accent_sun">Sun</string>
-    <string name="theme_accent_frost">Frost</string>
-    <string name="theme_decorations">Paper grid and hard shadows</string>
-    <string name="theme_decorations_summary">Static decorations without animated wallpaper or blur. Turn off for a simpler look.</string>
     <string name="theme_miui_options">MIUI styling</string>
     <string name="theme_miui_monet">Use Monet colours</string>
     <string name="theme_miui_monet_summary">Off uses the native Miuix palette. On enables the wallpaper or seed-colour engine.</string>

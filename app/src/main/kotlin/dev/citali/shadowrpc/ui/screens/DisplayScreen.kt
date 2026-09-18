@@ -46,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamicColorScheme
 import dev.citali.shadowrpc.R
+import dev.citali.shadowrpc.data.ThemePreset
+import dev.citali.shadowrpc.data.rememberThemePreset
 import dev.citali.shadowrpc.data.DarkMode
 import dev.citali.shadowrpc.data.Prefs
 import dev.citali.shadowrpc.data.rememberEnumPreference
@@ -61,11 +63,9 @@ fun DisplayScreen(onBack: () -> Unit) {
     val (pureBlack, setPureBlack) = rememberPreference(Prefs.PureBlackKey, false)
     val (dynamicColor, setDynamicColor) = rememberPreference(Prefs.DynamicColorKey, Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
     val (seed, setSeed) = rememberPreference(Prefs.SeedColorKey, SeedColors.first().toArgb().toLong())
-    val (preset) = rememberEnumPreference(Prefs.ThemePresetKey, ThemePreset.MATERIAL_YOU)
-    val (paper) = rememberEnumPreference(Prefs.MangaPaperKey, MangaPaperMode.AUTO)
+    val (preset) = rememberThemePreset()
     val (monet) = rememberPreference(Prefs.MiuixMonetKey, false)
     val supportsSeed = preset == ThemePreset.MATERIAL_YOU || (preset == ThemePreset.MIUI && monet)
-    val followsDarkMode = preset != ThemePreset.MANGA || paper == MangaPaperMode.AUTO
     var darkDialog by remember { mutableStateOf(false) }
 
     ScreenScaffold(title = stringResource(R.string.drawer_display), onBack = onBack) {
@@ -120,7 +120,6 @@ fun DisplayScreen(onBack: () -> Unit) {
                     },
                 ),
             icon = Icons.Outlined.DarkMode,
-            enabled = followsDarkMode,
             onClick = { darkDialog = true },
         )
         SwitchPreference(
@@ -128,7 +127,7 @@ fun DisplayScreen(onBack: () -> Unit) {
             description = stringResource(R.string.display_pure_black_summary),
             checked = pureBlack,
             onCheckedChange = setPureBlack,
-            enabled = if (followsDarkMode) darkMode != DarkMode.OFF else paper != MangaPaperMode.DAY,
+            enabled = darkMode != DarkMode.OFF,
         )
     }
 
@@ -228,9 +227,9 @@ private fun SeedSwatch(
 @Composable
 private fun ThemePreviewArt() {
     Surface(
-        shape = themeShape(24.dp), border = themeBorder(),
+        shape = themeShape(24.dp),
         color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.padding(20.dp).fillMaxWidth().themePanel(),
+        modifier = Modifier.padding(20.dp).fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)

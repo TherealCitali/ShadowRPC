@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import dev.citali.shadowrpc.ui.theme.themeShape
-import dev.citali.shadowrpc.ui.theme.themeBorder
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -43,7 +42,6 @@ fun PresencePreview(
 ) {
     Surface(
         shape = themeShape(24.dp),
-        border = themeBorder(),
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = modifier.fillMaxWidth(),
     ) {

@@ -1,93 +1,28 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// ShadowRPC adaptations of Komi personality tokens and InstallerX Revived theme routing.
-// InstallerX portions: Copyright (C) 2025-2026 InstallerX Revived contributors.
-// See docs/THEMES.md and bundled licenses for source revisions and modifications.
+// Theme routing adapted from InstallerX Revived.
+// Copyright (C) 2025-2026 InstallerX Revived contributors.
+// ShadowRPC adaptations documented in docs/THEMES.md.
 package dev.citali.shadowrpc.ui.theme
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.citali.shadowrpc.ui.theme.manga.*
+import dev.citali.shadowrpc.data.ThemePreset
 import top.yukonga.miuix.kmp.theme.Colors
 import top.yukonga.miuix.kmp.theme.TextStyles
-import kotlin.math.roundToInt
-
-enum class ThemePreset { MATERIAL_YOU, MANGA, MIUI }
-enum class MangaPaperMode { AUTO, DAY, NIGHT, NORD }
 
 @Immutable
-data class ThemeTokens(
-    val preset: ThemePreset = ThemePreset.MATERIAL_YOU,
-    val decorations: Boolean = true,
-    val isDark: Boolean = false,
-) {
-    val manga get() = preset == ThemePreset.MANGA
+data class ThemeTokens(val preset: ThemePreset = ThemePreset.MATERIAL_YOU) {
     val miui get() = preset == ThemePreset.MIUI
-    fun corner(default: Dp): Dp = when (preset) {
-        ThemePreset.MANGA -> 0.dp
-        ThemePreset.MIUI -> minOf(default, 16.dp)
-        else -> default
-    }
+    fun corner(default: Dp): Dp = if (miui) minOf(default, 16.dp) else default
 }
 val LocalThemeTokens = staticCompositionLocalOf { ThemeTokens() }
 
 @Composable
 fun themeShape(default: Dp): RoundedCornerShape = RoundedCornerShape(LocalThemeTokens.current.corner(default))
-
-@Composable
-fun themeBorder(): BorderStroke? = if (LocalThemeTokens.current.manga) BorderStroke(3.dp, MaterialTheme.colorScheme.outline) else null
-
-/** Komi hard-shadow panel treatment; no blur, offscreen framebuffer or animation. */
-@Composable
-fun Modifier.themePanel(): Modifier {
-    val t = LocalThemeTokens.current
-    val ink = if (t.isDark) Color.Black else MaterialTheme.colorScheme.onSurface
-    return if (!t.manga || !t.decorations) this else drawWithCache {
-        val offset = 6.dp.toPx()
-        onDrawBehind { translate(offset, offset) { drawRect(ink) } }
-    }
-}
-
-/** Komi paper-grid treatment, adapted to a cached repeating tile (one draw call). */
-@Composable
-fun Modifier.themePaper(): Modifier {
-    val t = LocalThemeTokens.current
-    val ink = MaterialTheme.colorScheme.onBackground
-    return if (!t.manga || !t.decorations) this else drawWithCache {
-        val side = 26.dp.toPx().roundToInt().coerceAtLeast(1)
-        val tile = ImageBitmap(side, side)
-        val canvas = Canvas(tile)
-        val paint = Paint().apply { color = ink.copy(alpha = if (t.isDark) 0.06f else 0.05f); strokeWidth = 1.dp.toPx() }
-        canvas.drawLine(Offset.Zero, Offset(side.toFloat(), 0f), paint)
-        canvas.drawLine(Offset.Zero, Offset(0f, side.toFloat()), paint)
-        val brush = ShaderBrush(ImageShader(tile, TileMode.Repeated, TileMode.Repeated))
-        onDrawBehind { drawRect(brush) }
-    }
-}
-
-fun PersonalityColors.toMaterialScheme(): ColorScheme {
-    val base = if (isDark) darkColorScheme() else lightColorScheme()
-    return base.copy(
-        primary = primary, onPrimary = onPrimary, primaryContainer = primaryContainer, onPrimaryContainer = onPrimaryContainer,
-        secondary = primary, onSecondary = onPrimary, secondaryContainer = primaryContainer, onSecondaryContainer = onPrimaryContainer,
-        tertiary = primary, onTertiary = onPrimary, tertiaryContainer = primaryContainer, onTertiaryContainer = onPrimaryContainer,
-        background = background, onBackground = onBackground, surface = surface, onSurface = onSurface,
-        surfaceVariant = surfaceVariant, onSurfaceVariant = onSurfaceVariant, surfaceTint = primary,
-        surfaceContainerLowest = background, surfaceContainerLow = surface, surfaceContainer = surfaceContainer,
-        surfaceContainerHigh = surfaceContainerHigh, surfaceContainerHighest = surfaceContainerHigh,
-        surfaceBright = surfaceContainerHigh, surfaceDim = background,
-        outline = outline, outlineVariant = outlineVariant, error = error, onError = onError,
-        inverseSurface = onSurface, inverseOnSurface = surface, inversePrimary = primary, scrim = scrim,
-    )
-}
 
 /** Bridge actual Miuix engine roles to screens which still use Material components. */
 fun Colors.toMaterialScheme(dark: Boolean): ColorScheme {

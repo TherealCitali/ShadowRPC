@@ -146,12 +146,11 @@ fun MasterSwitchCard(
         onClick = { if (enabled) onCheckedChange(!checked) },
         enabled = enabled,
         shape = themeShape(28.dp),
-        border = themeBorder(),
         color = if (checked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .themePanel(),
+            ,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -175,9 +174,8 @@ fun MasterSwitchCard(
 fun PreferenceCard(content: @Composable () -> Unit) {
     Surface(
         shape = themeShape(32.dp),
-        border = themeBorder(),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).themePanel(),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
     ) {
         Column(modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             content()
@@ -224,8 +222,7 @@ fun GroupedPreferenceCard(
             bottomStart = tokens.corner(if (last) 28.dp else 4.dp),
             bottomEnd = tokens.corner(if (last) 28.dp else 4.dp),
         ),
-        border = themeBorder(),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = if (tokens.manga) 4.dp else 1.dp).themePanel(),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 1.dp),
     ) { content() }
 }

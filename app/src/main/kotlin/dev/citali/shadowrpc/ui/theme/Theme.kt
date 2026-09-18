@@ -15,7 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
-import dev.citali.shadowrpc.ui.theme.manga.*
+import dev.citali.shadowrpc.data.ThemePreset
+import dev.citali.shadowrpc.data.rememberThemePreset
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.ThemeController
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -50,10 +51,7 @@ fun ShadowRpcTheme(content: @Composable () -> Unit) {
     val (pureBlack) = rememberPreference(Prefs.PureBlackKey, false)
     val (dynamicColor) = rememberPreference(Prefs.DynamicColorKey, Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
     val (seedArgb) = rememberPreference(Prefs.SeedColorKey, SeedColors.first().toArgb().toLong())
-    val (preset) = rememberEnumPreference(Prefs.ThemePresetKey, ThemePreset.MATERIAL_YOU)
-    val (paperMode) = rememberEnumPreference(Prefs.MangaPaperKey, MangaPaperMode.AUTO)
-    val (accent) = rememberEnumPreference(Prefs.MangaAccentKey, MangaAccent.CRIMSON)
-    val (decorations) = rememberPreference(Prefs.ThemeDecorationsKey, true)
+    val (preset) = rememberThemePreset()
     val (monet) = rememberPreference(Prefs.MiuixMonetKey, false)
     val systemDark = isSystemInDarkTheme()
     val requestedDark = when (darkMode) {
@@ -61,17 +59,11 @@ fun ShadowRpcTheme(content: @Composable () -> Unit) {
         DarkMode.ON -> true
         DarkMode.OFF -> false
     }
-    val paper = when (paperMode) {
-        MangaPaperMode.AUTO -> if (requestedDark) MangaPaper.NIGHT else MangaPaper.DAY
-        MangaPaperMode.DAY -> MangaPaper.DAY
-        MangaPaperMode.NIGHT -> MangaPaper.NIGHT
-        MangaPaperMode.NORD -> MangaPaper.NORD
-    }
-    val darkTheme = if (preset == ThemePreset.MANGA) paper != MangaPaper.DAY else requestedDark
+    val darkTheme = requestedDark
     val context = LocalContext.current
     val canUseDynamic = dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val seed = Color(seedArgb.toInt())
-    val tokens = remember(preset, decorations, darkTheme) { ThemeTokens(preset, decorations, darkTheme) }
+    val tokens = remember(preset) { ThemeTokens(preset) }
     val shapes = remember(tokens) {
         androidx.compose.material3.Shapes(
             extraSmall = androidx.compose.foundation.shape.RoundedCornerShape(tokens.corner(4.dp)),
@@ -110,16 +102,14 @@ fun ShadowRpcTheme(content: @Composable () -> Unit) {
                     shapes = shapes, typography = ShadowTypography, motionScheme = MotionScheme.standard()) { preserved(content) }
             }
         } else {
-            val base = if (preset == ThemePreset.MANGA) {
-                remember(paper, accent) { mangaColors(paper, accent).toMaterialScheme() }
-            } else if (canUseDynamic) {
+            val base = if (canUseDynamic) {
                 if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
             } else {
                 remember(seed, darkTheme) { dynamicColorScheme(seedColor = seed, isDark = darkTheme, style = PaletteStyle.TonalSpot) }
             }
             MaterialTheme(colorScheme = base.withPureBlack(darkTheme && pureBlack), shapes = shapes,
                 typography = ShadowTypography,
-                motionScheme = if (preset == ThemePreset.MANGA) MotionScheme.standard() else MotionScheme.expressive()) { preserved(content) }
+                motionScheme = MotionScheme.expressive()) { preserved(content) }
         }
     }
 }

@@ -5,7 +5,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import dev.citali.shadowrpc.ui.theme.themeShape
-import dev.citali.shadowrpc.ui.theme.themeBorder
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -68,7 +67,6 @@ fun SheetChoice(label: String, selected: Boolean, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         shape = themeShape(28.dp),
-        border = themeBorder(),
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
         contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.fillMaxWidth().semantics {

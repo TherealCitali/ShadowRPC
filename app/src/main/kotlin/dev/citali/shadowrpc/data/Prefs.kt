@@ -54,9 +54,6 @@ object Prefs {
     val LowResolutionImagesKey = booleanPreferencesKey("lowResolutionImages")
 
     val ThemePresetKey = stringPreferencesKey("themePreset")
-    val MangaPaperKey = stringPreferencesKey("mangaPaper")
-    val MangaAccentKey = stringPreferencesKey("mangaAccent")
-    val ThemeDecorationsKey = booleanPreferencesKey("themeDecorations")
     val MiuixMonetKey = booleanPreferencesKey("miuixMonet")
 
     // Display
