@@ -1,4 +1,5 @@
 [versions]
+miuix = "0.9.3"
 # Toolchain mirrors LunarTune (known-good on GitHub Actions with Gradle 9.6.1 / JDK 21)
 agp = "9.2.1"
 kotlin = "2.4.0"
@@ -19,6 +20,7 @@ timber = "5.0.1"
 materialKolor = "5.0.0-alpha07"
 
 [libraries]
+miuix-ui = { module = "top.yukonga.miuix.kmp:miuix-ui-android", version.ref = "miuix" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }

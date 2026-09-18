@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import dev.citali.shadowrpc.ui.theme.themeShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DarkMode
@@ -52,7 +53,7 @@ import dev.citali.shadowrpc.data.rememberPreference
 import dev.citali.shadowrpc.ui.component.PreferenceEntry
 import dev.citali.shadowrpc.ui.component.ScreenScaffold
 import dev.citali.shadowrpc.ui.component.SwitchPreference
-import dev.citali.shadowrpc.ui.theme.SeedColors
+import dev.citali.shadowrpc.ui.theme.*
 
 @Composable
 fun DisplayScreen(onBack: () -> Unit) {
@@ -60,12 +61,17 @@ fun DisplayScreen(onBack: () -> Unit) {
     val (pureBlack, setPureBlack) = rememberPreference(Prefs.PureBlackKey, false)
     val (dynamicColor, setDynamicColor) = rememberPreference(Prefs.DynamicColorKey, Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
     val (seed, setSeed) = rememberPreference(Prefs.SeedColorKey, SeedColors.first().toArgb().toLong())
+    val (preset) = rememberEnumPreference(Prefs.ThemePresetKey, ThemePreset.MATERIAL_YOU)
+    val (paper) = rememberEnumPreference(Prefs.MangaPaperKey, MangaPaperMode.AUTO)
+    val (monet) = rememberPreference(Prefs.MiuixMonetKey, false)
+    val supportsSeed = preset == ThemePreset.MATERIAL_YOU || (preset == ThemePreset.MIUI && monet)
+    val followsDarkMode = preset != ThemePreset.MANGA || paper == MangaPaperMode.AUTO
     var darkDialog by remember { mutableStateOf(false) }
 
     ScreenScaffold(title = stringResource(R.string.drawer_display), onBack = onBack) {
         // Preview card, like the illustration panel in the screenshot
         Surface(
-            shape = RoundedCornerShape(28.dp),
+            shape = themeShape(28.dp),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             modifier = Modifier
                 .fillMaxWidth()
@@ -78,7 +84,9 @@ fun DisplayScreen(onBack: () -> Unit) {
         }
         Spacer(Modifier.height(24.dp))
 
-        LazyRow(
+        ThemePresetSettings()
+        Spacer(Modifier.height(20.dp))
+        if (supportsSeed) LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp),
         ) {
@@ -92,7 +100,7 @@ fun DisplayScreen(onBack: () -> Unit) {
         }
         Spacer(Modifier.height(20.dp))
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (supportsSeed && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             SwitchPreference(
                 title = stringResource(R.string.display_dynamic_color),
                 description = stringResource(R.string.display_dynamic_color_summary),
@@ -112,6 +120,7 @@ fun DisplayScreen(onBack: () -> Unit) {
                     },
                 ),
             icon = Icons.Outlined.DarkMode,
+            enabled = followsDarkMode,
             onClick = { darkDialog = true },
         )
         SwitchPreference(
@@ -119,7 +128,7 @@ fun DisplayScreen(onBack: () -> Unit) {
             description = stringResource(R.string.display_pure_black_summary),
             checked = pureBlack,
             onCheckedChange = setPureBlack,
-            enabled = darkMode != DarkMode.OFF,
+            enabled = if (followsDarkMode) darkMode != DarkMode.OFF else paper != MangaPaperMode.DAY,
         )
     }
 
@@ -160,7 +169,7 @@ private fun SeedSwatch(
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val scheme = remember(color, isDark) { dynamicColorScheme(seedColor = color, isDark = isDark, style = PaletteStyle.TonalSpot) }
     Surface(
-        shape = RoundedCornerShape(20.dp),
+        shape = themeShape(20.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = Modifier
             .size(84.dp)
@@ -215,27 +224,21 @@ private fun SeedSwatch(
     }
 }
 
-/** Small abstract "trees" scene drawn with the current palette, standing in for the illustration. */
+/** Preview uses the same panel, typography and switch implementation as the app. */
 @Composable
 private fun ThemePreviewArt() {
-    val scheme = MaterialTheme.colorScheme
-    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-        listOf(
-            scheme.secondaryContainer to 64.dp,
-            scheme.primary to 96.dp,
-            scheme.tertiaryContainer to 72.dp,
-            scheme.primaryContainer to 56.dp,
-            scheme.errorContainer to 48.dp,
-        ).forEach { (color, size) ->
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(Modifier
-                    .size(size)
-                    .clip(CircleShape)
-                    .background(color))
-                Box(Modifier
-                    .size(width = 3.dp, height = 40.dp)
-                    .background(scheme.onSurfaceVariant.copy(alpha = 0.6f)))
+    Surface(
+        shape = themeShape(24.dp), border = themeBorder(),
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.padding(20.dp).fillMaxWidth().themePanel(),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.theme_preview_presence), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                dev.citali.shadowrpc.ui.component.ExpressiveSwitch(checked = true, onCheckedChange = {})
             }
+            Text(stringResource(R.string.theme_preview_local), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

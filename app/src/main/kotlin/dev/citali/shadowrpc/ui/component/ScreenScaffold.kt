@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.citali.shadowrpc.ui.theme.themePaper
 import dev.citali.shadowrpc.R
 
 /**
@@ -61,6 +62,7 @@ fun ScreenScaffold(
                 Modifier
                     .fillMaxSize()
                     .padding(padding)
+                    .themePaper()
                     .let { if (scrollable) it.verticalScroll(rememberScrollState()) else it },
         ) {
             Text(

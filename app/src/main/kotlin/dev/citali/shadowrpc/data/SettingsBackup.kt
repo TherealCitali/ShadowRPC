@@ -8,9 +8,9 @@ import org.json.JSONObject
 
 /** Explicit allow-list: never serializes accounts, tokens, consent, caches or running state. */
 object SettingsBackup {
-    private val booleans = listOf(Prefs.ClearOnLockKey, Prefs.AppDetectionShowIconKey, Prefs.AppDetectionTimestampsKey,
+    private val booleans = listOf(Prefs.ThemeDecorationsKey, Prefs.MiuixMonetKey, Prefs.ClearOnLockKey, Prefs.AppDetectionShowIconKey, Prefs.AppDetectionTimestampsKey,
         Prefs.LowResolutionImagesKey, Prefs.PureBlackKey, Prefs.DynamicColorKey)
-    private val strings = listOf(Prefs.DarkModeKey, Prefs.ActivityTypeKey, Prefs.ActivityStatusKey,
+    private val strings = listOf(Prefs.ThemePresetKey, Prefs.MangaPaperKey, Prefs.MangaAccentKey, Prefs.DarkModeKey, Prefs.ActivityTypeKey, Prefs.ActivityStatusKey,
         Prefs.ActivityNameSourceKey, Prefs.ActivityDetailsSourceKey, Prefs.ActivityStateSourceKey,
         Prefs.ActivityNameCustomKey, Prefs.ActivityDetailsCustomKey, Prefs.ActivityStateCustomKey,
         Prefs.AppLabelOverridesKey, Prefs.AppPresenceOverridesKey, Prefs.CustomApplicationIdKey)
@@ -63,6 +63,9 @@ object SettingsBackup {
         fun checkChoice(key: Preferences.Key<String>, choices: Set<String>) {
             if (values.has(key.name)) require(values.getString(key.name) in choices)
         }
+        checkChoice(Prefs.ThemePresetKey, setOf("MATERIAL_YOU", "MANGA", "MIUI"))
+        checkChoice(Prefs.MangaPaperKey, setOf("AUTO", "DAY", "NIGHT", "NORD"))
+        checkChoice(Prefs.MangaAccentKey, setOf("MONO", "CRIMSON", "COBALT", "SUN", "FROST"))
         checkChoice(Prefs.DarkModeKey, setOf("AUTO", "ON", "OFF"))
         checkChoice(Prefs.ActivityTypeKey, setOf("PLAYING", "LISTENING", "WATCHING", "COMPETING"))
         checkChoice(Prefs.ActivityStatusKey, setOf("online", "idle", "dnd"))

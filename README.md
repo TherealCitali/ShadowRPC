@@ -23,7 +23,7 @@ as *Playing &lt;game&gt;* — using the same OAuth2 + gateway stack that powers
 | **App Detection** – pick the apps/games you want to share; ShadowRPC shows the one in the foreground | ✅ |
 | Activity type (Playing / Listening / Watching / Competing), activity name, online status | ✅ |
 | Optional app icon + elapsed time on the presence | ✅ |
-| Material You theming, seed colours, pure black | ✅ |
+| Material You, Manga (Komi), MIUI / Miuix presets; seed colours and pure black | ✅ |
 | Media RPC (now-playing from any player) | 🔜 |
 | Custom RPC / Console RPC | 🔜 |
 
@@ -45,6 +45,10 @@ and can be revoked anytime; ShadowRPC stops itself when it is.
 
 - [LunarTune](https://github.com/cognitiveshadows03/LunarTune) — Discord gateway / OAuth code (GPL-3.0)
 - ShadowRPC icon artwork supplied by TherealCitali; [original PNGs](assets/) and [asset notes](docs/ICON_ASSETS.md).
+
+- [Komi Store](https://github.com/komi-store/komi-store) — Manga palettes/personality styling (Apache-2.0).
+- [InstallerX Revived](https://github.com/wxxsfxyzm/InstallerX-Revived) — MIUI engine routing (GPL-3.0), using [Miuix](https://github.com/miuix-kotlin-multiplatform/miuix) (Apache-2.0).
+- [Theme engine details, source revisions and adaptations](docs/THEMES.md).
 
 ## License
 

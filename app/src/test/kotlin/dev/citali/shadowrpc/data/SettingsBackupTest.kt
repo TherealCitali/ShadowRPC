@@ -37,6 +37,18 @@ class SettingsBackupTest {
         assertEquals(setOf("com.example.app"), prefs[Prefs.AppDetectionPackagesKey])
     }
 
+    @Test fun themePreferencesRoundTripAndRejectUnknownValues() {
+        val original = mutablePreferencesOf(Prefs.ThemePresetKey to "MANGA", Prefs.MangaPaperKey to "NORD",
+            Prefs.MangaAccentKey to "FROST", Prefs.ThemeDecorationsKey to false, Prefs.MiuixMonetKey to true)
+        val restored = mutablePreferencesOf()
+        SettingsBackup.applyTo(restored, SettingsBackup.encode(original))
+        original.asMap().forEach { (key, value) -> assertEquals(value, restored.asMap()[key]) }
+        listOf("themePreset", "mangaPaper", "mangaAccent").forEach { key ->
+            assertTrue(runCatching { SettingsBackup.validate(backup(JSONObject().put(key, "INVALID"))) }.isFailure)
+        }
+        assertTrue(runCatching { SettingsBackup.validate(backup(JSONObject().put("miuixMonet", "yes"))) }.isFailure)
+    }
+
     @Test fun malformedSettingsFailBeforeMutation() {
         val bad = listOf(
             JSONObject().put("clearOnLock", "true"), JSONObject().put("backgroundGraceSeconds", -1),

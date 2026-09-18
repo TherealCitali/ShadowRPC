@@ -53,6 +53,12 @@ object Prefs {
     val CustomApplicationIdKey = stringPreferencesKey("customApplicationId")
     val LowResolutionImagesKey = booleanPreferencesKey("lowResolutionImages")
 
+    val ThemePresetKey = stringPreferencesKey("themePreset")
+    val MangaPaperKey = stringPreferencesKey("mangaPaper")
+    val MangaAccentKey = stringPreferencesKey("mangaAccent")
+    val ThemeDecorationsKey = booleanPreferencesKey("themeDecorations")
+    val MiuixMonetKey = booleanPreferencesKey("miuixMonet")
+
     // Display
     val DarkModeKey = stringPreferencesKey("darkMode") // AUTO / ON / OFF
     val PureBlackKey = booleanPreferencesKey("pureBlack")

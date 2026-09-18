@@ -80,7 +80,7 @@ fun AccountContent() {
 
     Column {
         Card(
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(32.dp),
+            shape = androidx.compose.foundation.shape.themeShape(32.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
             modifier = Modifier
                 .fillMaxWidth()
@@ -121,7 +121,7 @@ fun AccountContent() {
                 }
                 Spacer(Modifier.height(20.dp))
                 Surface(
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                    shape = androidx.compose.foundation.shape.themeShape(24.dp),
                     color = if (error != null || !hasAppId) MaterialTheme.colorScheme.errorContainer
                         else MaterialTheme.colorScheme.surfaceContainerHighest,
                     modifier = Modifier.fillMaxWidth(),
@@ -143,7 +143,7 @@ fun AccountContent() {
                 Spacer(Modifier.height(16.dp))
                 if (token.isNotBlank()) {
                     Surface(
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                        shape = androidx.compose.foundation.shape.themeShape(24.dp),
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
